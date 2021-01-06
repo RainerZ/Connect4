@@ -1,4 +1,5 @@
-package Connect4;
+package connect4;
+
 
 
 import javafx.animation.TranslateTransition;
@@ -18,40 +19,56 @@ import javafx.util.Duration;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-/**
- * @author Almas Baimagambetov (AlmasB) (almaslvl@gmail.com)
- */
-public class Connect4 extends Application {
+import connect4.Connect4Game.Symbol;
 
-    private static final int TILE_SIZE = 80;
-    private static final int COLUMNS = 7;
-    private static final int ROWS = 6;
 
-    private boolean redMove = true;
-    private Disc[][] grid = new Disc[COLUMNS][ROWS];
 
+public class Connect4Frame extends Parent {
+
+
+    private final int TILE_SIZE = 80;
+    
+    private int COLS;
+    private int ROWS;
+
+    
+    private Disc[][] grid;
+
+    
     private Pane discRoot = new Pane();
 
-    private Parent createContent() {
+    private Connect4Game game;
+    
+    
+    Connect4Frame(final Connect4Game game) {
+
+        super();
+
+        COLS = game.COLS;
+        ROWS = game.ROWS;
+        grid = new Disc[COLS][ROWS];
+        
+        this.game = game;
+        
         Pane root = new Pane();
         root.getChildren().add(discRoot);
 
         Shape gridShape = makeGrid();
         root.getChildren().add(gridShape);
         root.getChildren().addAll(makeColumns());
-
-        return root;
+        
+        getChildren().add(root);
     }
 
     private Shape makeGrid() {
-        Shape shape = new Rectangle((COLUMNS + 1) * TILE_SIZE, (ROWS + 1) * TILE_SIZE);
+        Shape shape = new Rectangle((COLS + 1) * TILE_SIZE, (ROWS + 1) * TILE_SIZE);
 
         for (int y = 0; y < ROWS; y++) {
-            for (int x = 0; x < COLUMNS; x++) {
+            for (int x = 0; x < COLS; x++) {
                 Circle circle = new Circle(TILE_SIZE / 2);
                 circle.setCenterX(TILE_SIZE / 2);
                 circle.setCenterY(TILE_SIZE / 2);
@@ -79,7 +96,7 @@ public class Connect4 extends Application {
     private List<Rectangle> makeColumns() {
         List<Rectangle> list = new ArrayList<>();
 
-        for (int x = 0; x < COLUMNS; x++) {
+        for (int x = 0; x < COLS; x++) {
             Rectangle rect = new Rectangle(TILE_SIZE, (ROWS + 1) * TILE_SIZE);
             rect.setTranslateX(x * (TILE_SIZE + 5) + TILE_SIZE / 4);
             rect.setFill(Color.TRANSPARENT);
@@ -88,7 +105,7 @@ public class Connect4 extends Application {
             rect.setOnMouseExited(e -> rect.setFill(Color.TRANSPARENT));
 
             final int column = x;
-            rect.setOnMouseClicked(e -> placeDisc(new Disc(redMove), column));
+            rect.setOnMouseClicked(e -> move(column));
 
             list.add(rect);
         }
@@ -96,12 +113,23 @@ public class Connect4 extends Application {
         return list;
     }
 
+    private void move(int column) {
+      
+        placeDisc(new Disc(true), column);
+        game.doMove(column, Symbol.R);
+
+        int c = game.calcMove();
+        if (c>=0) {
+          placeDisc(new Disc(false), c);
+          game.doMove(c, Symbol.Y);
+        }
+    }
+    
+    
     private void placeDisc(Disc disc, int column) {
         int row = ROWS - 1;
         do {
-            if (!getDisc(column, row).isPresent())
-                break;
-
+            if (null==getDisc(column, row)) break;
             row--;
         } while (row >= 0);
 
@@ -111,9 +139,10 @@ public class Connect4 extends Application {
         grid[column][row] = disc;
         discRoot.getChildren().add(disc);
         disc.setTranslateX(column * (TILE_SIZE + 5) + TILE_SIZE / 4);
+        disc.setTranslateY(row * (TILE_SIZE + 5) + TILE_SIZE / 4);
 
+/*
         final int currentRow = row;
-
         TranslateTransition animation = new TranslateTransition(Duration.seconds(0.5), disc);
         animation.setToY(row * (TILE_SIZE + 5) + TILE_SIZE / 4);
         animation.setOnFinished(e -> {
@@ -121,9 +150,11 @@ public class Connect4 extends Application {
                 gameOver();
             }
 
-            redMove = !redMove;
+            
         });
         animation.play();
+  */      
+        
     }
 
     private boolean gameEnded(int column, int row) {
@@ -156,7 +187,8 @@ public class Connect4 extends Application {
             int column = (int) p.getX();
             int row = (int) p.getY();
 
-            Disc disc = getDisc(column, row).orElse(new Disc(!redMove));
+            Disc disc = getDisc(column, row);
+            if (disc==null) disc = new Disc(!redMove);
             if (disc.red == redMove) {
                 chain++;
                 if (chain == 4) {
@@ -174,15 +206,14 @@ public class Connect4 extends Application {
         System.out.println("Winner: " + (redMove ? "RED" : "YELLOW"));
     }
 
-    private Optional<Disc> getDisc(int column, int row) {
-        if (column < 0 || column >= COLUMNS
-                || row < 0 || row >= ROWS)
-            return Optional.empty();
+    private Disc getDisc(int column, int row) {
+        if (column < 0 || column >= COLS || row < 0 || row >= ROWS)
+            return null;
 
-        return Optional.ofNullable(grid[column][row]);
+        return grid[column][row];
     }
 
-    private static class Disc extends Circle {
+    private class Disc extends Circle {
         private final boolean red;
         public Disc(boolean red) {
             super(TILE_SIZE / 2, red ? Color.RED : Color.YELLOW);
@@ -193,13 +224,5 @@ public class Connect4 extends Application {
         }
     }
 
-    @Override
-    public void start(Stage stage) throws Exception {
-        stage.setScene(new Scene(createContent()));
-        stage.show();
-    }
-
-    public static void main(String[] args) {
-        launch(args);
-    }
+    
 }

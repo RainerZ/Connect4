@@ -4,16 +4,23 @@ package connect4;
 
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.effect.Light;
 import javafx.scene.effect.Lighting;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -23,7 +30,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import connect4.Connect4Game.Symbol;
 
 
 
@@ -32,43 +38,65 @@ public class Connect4Frame extends Parent {
 
     private final int TILE_SIZE = 80;
     
-    private int COLS;
-    private int ROWS;
-
+   
     
-    private Disc[][] grid;
-
-    
-    private Pane discRoot = new Pane();
+    private Pane discRoot;
 
     private Connect4Game game;
     
+    Text boardStatusText;
     
     Connect4Frame(final Connect4Game game) {
 
         super();
 
-        COLS = game.COLS;
-        ROWS = game.ROWS;
-        grid = new Disc[COLS][ROWS];
+        
         
         this.game = game;
         
-        Pane root = new Pane();
-        root.getChildren().add(discRoot);
+        Pane gamePane = new Pane();
+        discRoot = new Pane();
+        gamePane.getChildren().add(discRoot);
 
         Shape gridShape = makeGrid();
-        root.getChildren().add(gridShape);
-        root.getChildren().addAll(makeColumns());
+        gamePane.getChildren().add(gridShape);
+        gamePane.getChildren().addAll(makeColumns());
         
-        getChildren().add(root);
+// right
+        GridPane grid = new GridPane();
+        grid.setMinSize(125, 125);
+        grid.setHgap(5);
+        grid.setVgap(5);
+        grid.setPadding(new Insets(10));
+        grid.add(gamePane, 0, 0);
+
+        // left
+        Button b0 = new Button("New Game");
+        b0.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e) {
+                discRoot.getChildren().clear();
+                game.newGame();
+                printStatus("");
+            }
+        });
+        boardStatusText = new Text();
+        boardStatusText.setText("Red Player starts");
+        VBox v = new VBox(b0,boardStatusText);
+        VBox.setMargin(b0, new Insets(2, 2, 2, 2));
+        VBox.setMargin(boardStatusText, new Insets(10, 10, 10, 10));
+        grid.add(v, 1, 0);
+
+        getChildren().add(grid);
+        
+
     }
 
     private Shape makeGrid() {
-        Shape shape = new Rectangle((COLS + 1) * TILE_SIZE, (ROWS + 1) * TILE_SIZE);
+        Shape shape = new Rectangle((game.COLS + 1) * TILE_SIZE, (game.ROWS + 1) * TILE_SIZE);
 
-        for (int y = 0; y < ROWS; y++) {
-            for (int x = 0; x < COLS; x++) {
+        for (int y = 0; y < game.ROWS; y++) {
+            for (int x = 0; x < game.COLS; x++) {
                 Circle circle = new Circle(TILE_SIZE / 2);
                 circle.setCenterX(TILE_SIZE / 2);
                 circle.setCenterY(TILE_SIZE / 2);
@@ -96,8 +124,8 @@ public class Connect4Frame extends Parent {
     private List<Rectangle> makeColumns() {
         List<Rectangle> list = new ArrayList<>();
 
-        for (int x = 0; x < COLS; x++) {
-            Rectangle rect = new Rectangle(TILE_SIZE, (ROWS + 1) * TILE_SIZE);
+        for (int x = 0; x < game.COLS; x++) {
+            Rectangle rect = new Rectangle(TILE_SIZE, (game.ROWS + 1) * TILE_SIZE);
             rect.setTranslateX(x * (TILE_SIZE + 5) + TILE_SIZE / 4);
             rect.setFill(Color.TRANSPARENT);
 
@@ -114,111 +142,84 @@ public class Connect4Frame extends Parent {
     }
 
     private void move(int column) {
-      
-        placeDisc(new Disc(true), column);
-        game.doMove(column, Symbol.R);
 
-        int c = game.calcMove();
-        if (c>=0) {
-          placeDisc(new Disc(false), c);
-          game.doMove(c, Symbol.Y);
+        if (game.isOver()) {
+            printStatus("Game over");
+        }
+        else {
+            int row = game.doMove(column, game.RED); 
+            if (row >= 0) {
+                placeDisc(new Disc(true), column,row, true);  
+                
+            }
         }
     }
-    
-    
-    private void placeDisc(Disc disc, int column) {
-        int row = ROWS - 1;
-        do {
-            if (null==getDisc(column, row)) break;
-            row--;
-        } while (row >= 0);
 
-        if (row < 0)
-            return;
+    private void printStatus(String text) {
+        boardStatusText.setText(text);
+    }
 
-        grid[column][row] = disc;
+    private void printGameStatus() {
+        int s = game.getScore();
+        if (game.isOver()) {
+
+            if (s == -1000) {
+                printStatus("Yellow wins");
+            } else if (s == +1000) {
+                printStatus("Red wins");
+            } else {
+                printStatus("Game over");
+
+            }
+        } else {
+            printStatus(" " + s);
+        }
+
+    }
+
+    private void placeDisc(Disc disc, int column, int row, boolean playAnimation) {
+                
         discRoot.getChildren().add(disc);
         disc.setTranslateX(column * (TILE_SIZE + 5) + TILE_SIZE / 4);
-        disc.setTranslateY(row * (TILE_SIZE + 5) + TILE_SIZE / 4);
 
-/*
-        final int currentRow = row;
+        if (!playAnimation) {
+            disc.setTranslateY((game.ROWS-row-1) * (TILE_SIZE + 5) + TILE_SIZE / 4);
+        }
+        else {
+            //disc.setTranslateY( (TILE_SIZE + 5) + TILE_SIZE / 4);
         TranslateTransition animation = new TranslateTransition(Duration.seconds(0.5), disc);
-        animation.setToY(row * (TILE_SIZE + 5) + TILE_SIZE / 4);
+        animation.setToY((game.ROWS-row-1) * (TILE_SIZE + 5) + TILE_SIZE / 4);
+        
         animation.setOnFinished(e -> {
-            if (gameEnded(column, currentRow)) {
-                gameOver();
+            
+            if (game.isOver()) {
+                printGameStatus();
             }
-
+            else {
+                int c = game.calcBestMove(game.YELLOW);
+                int r = game.doMove(c, game.YELLOW);
+                if (r >= 0) {
+                    placeDisc(new Disc(false), c,r, false);
+                    printGameStatus();
+                    
+                };
+            }
+        
             
         });
+        
         animation.play();
-  */      
+        }
         
     }
 
-    private boolean gameEnded(int column, int row) {
-        List<Point2D> vertical = IntStream.rangeClosed(row - 3, row + 3)
-                .mapToObj(r -> new Point2D(column, r))
-                .collect(Collectors.toList());
-
-        List<Point2D> horizontal = IntStream.rangeClosed(column - 3, column + 3)
-                .mapToObj(c -> new Point2D(c, row))
-                .collect(Collectors.toList());
-
-        Point2D topLeft = new Point2D(column - 3, row - 3);
-        List<Point2D> diagonal1 = IntStream.rangeClosed(0, 6)
-                .mapToObj(i -> topLeft.add(i, i))
-                .collect(Collectors.toList());
-
-        Point2D botLeft = new Point2D(column - 3, row + 3);
-        List<Point2D> diagonal2 = IntStream.rangeClosed(0, 6)
-                .mapToObj(i -> botLeft.add(i, -i))
-                .collect(Collectors.toList());
-
-        return checkRange(vertical) || checkRange(horizontal)
-                || checkRange(diagonal1) || checkRange(diagonal2);
-    }
-
-    private boolean checkRange(List<Point2D> points) {
-        int chain = 0;
-
-        for (Point2D p : points) {
-            int column = (int) p.getX();
-            int row = (int) p.getY();
-
-            Disc disc = getDisc(column, row);
-            if (disc==null) disc = new Disc(!redMove);
-            if (disc.red == redMove) {
-                chain++;
-                if (chain == 4) {
-                    return true;
-                }
-            } else {
-                chain = 0;
-            }
-        }
-
-        return false;
-    }
-
-    private void gameOver() {
-        System.out.println("Winner: " + (redMove ? "RED" : "YELLOW"));
-    }
-
-    private Disc getDisc(int column, int row) {
-        if (column < 0 || column >= COLS || row < 0 || row >= ROWS)
-            return null;
-
-        return grid[column][row];
-    }
-
+    
+    
     private class Disc extends Circle {
         private final boolean red;
         public Disc(boolean red) {
             super(TILE_SIZE / 2, red ? Color.RED : Color.YELLOW);
             this.red = red;
-
             setCenterX(TILE_SIZE / 2);
             setCenterY(TILE_SIZE / 2);
         }

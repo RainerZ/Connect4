@@ -12,7 +12,7 @@ public class Connect4Game {
     public final int COLS;
     public final int ROWS;
 
-    private final int MAX_DEPTH = 8;
+    private final int MAX_DEPTH = 7;
 
     public final int RED = +1;
     public final int YELLOW = -1;
@@ -235,11 +235,6 @@ private int minmax( int p, int depth ) {
     
 }
 
-
-/*
- 
-
- */
 
 
 

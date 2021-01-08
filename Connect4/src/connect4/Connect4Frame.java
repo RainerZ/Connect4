@@ -179,26 +179,23 @@ public class Connect4Frame extends Parent {
             disc.setTranslateY((game.ROWS-row-1) * (TILE_SIZE + 5) + TILE_SIZE / 4);
         }
         else {
-            //disc.setTranslateY( (TILE_SIZE + 5) + TILE_SIZE / 4);
-        TranslateTransition animation = new TranslateTransition(Duration.seconds(0.5), disc);
-        animation.setToY((game.ROWS-row-1) * (TILE_SIZE + 5) + TILE_SIZE / 4);
-        
-        animation.setOnFinished(e -> {
+              
+            TranslateTransition animation = new TranslateTransition(Duration.seconds(0.3), disc);
+            animation.setToY((game.ROWS-row-1) * (TILE_SIZE + 5) + TILE_SIZE / 4);
             
-            printGameStatus();
-            if (!game.isOver()) {
-                int c = game.calcBestMove(game.YELLOW);
-                int r = game.move(c, game.YELLOW);
-                if (r >= 0) {
-                    placeDisc(new Disc(false), c,r, false);   
-                }
+            animation.setOnFinished(e -> {
                 printGameStatus();
-            }
-        
+                if (!game.isOver()) {
+                    int c = game.calcBestMove(game.YELLOW);
+                    int r = game.move(c, game.YELLOW);
+                    if (r >= 0) {
+                        placeDisc(new Disc(false), c,r, false);   
+                    }
+                    printGameStatus();
+                }                
+            });
             
-        });
-        
-        animation.play();
+            animation.play();
         }
         
     }

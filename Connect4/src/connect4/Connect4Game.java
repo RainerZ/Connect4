@@ -13,18 +13,21 @@ public class Connect4Game {
     public final int COLS;
     public final int ROWS;
 
-    public final int MAX_DEPTH = 7;
+    private final int MAX_DEPTH = 8;
 
     public final int RED = +1;
     public final int YELLOW = -1;
-    public final int EMPTY = 0;
+    
+    private final int EMPTY = 0;
     
     private int[][] board;
     private int[] col_pieces;
     private int pieces;
     
-    List<Line> lines;
+    private List<Line> lines;
     
+    private String status;
+    private boolean over;
    
     private class Field {
         int row,col;
@@ -58,7 +61,7 @@ public class Connect4Game {
             System.out.println();
         }
 
-        public int getScore() {
+        public int sum() {
             
             int s = 0;
             for (Field f : line) {
@@ -70,10 +73,6 @@ public class Connect4Game {
                     s += sf;
                 }
             }
-            if (s==+3) s = +10;
-            if (s==-3) s = -10;
-            if (s==+4) s = +1000;
-            if (s==-4) s = -1000;
             return s;
         }
     }
@@ -113,103 +112,124 @@ public class Connect4Game {
               board[c][r] = EMPTY;
             }
         }
-
+        
+        status = "Start";
+        over = false;
     }
     
-    public boolean isOver( ) {
-        int s = getScore();
-        return s<=-1000 || s>=+1000 || pieces >= ROWS*COLS;
+    public boolean isOver() {
+        return over;
+    }
+    
+    public String getStatus() {
+        return status;
     }
     
     
-    public int doMove(int c, int p) {
-        if (col_pieces[c] < ROWS) {
-            int r = col_pieces[c];
-            board[c][r] = p;
-            col_pieces[c]++;
-            pieces++;
-            return r;
+    public int move(int c, int p) {
+      
+        if (col_pieces[c] < ROWS && !over) {
+            doMove(c, p);
+            int s = getScore();
+            if (s <= -1000) {
+                status = "YELLOW wins!";
+                over = true;
+            } else if (s >= +1000) {
+                status = "RED wins!";
+                over = true;
+            } else if (pieces >= ROWS * COLS) {
+                status = "Game over!";
+                over = true;
+            }
+            return col_pieces[c] - 1;
+        } else {
+            status = "Illegal move";
+            return -1;
         }
-        return -1;
     }
 
-    public void undoMove(int c) {
-        int r = --col_pieces[c];
-        board[c][r] = 0;
+    private void doMove(int c, int p) {
+     
+        board[c][col_pieces[c]++] = p;
+        pieces++;
+    }
+    
+
+    private void undoMove(int c) {
+      
+        board[c][--col_pieces[c]] = 0;
         pieces--;
     }
     
-    public int getScore() {
+    public int calcBestMove(int p) {
+
+        int c = minmax(p,0);
+        System.out.println("Best move for " + p + " is " + c );
+        print();
+        return c;
+    }
+
+    private int minmax( int p, int depth ) {
+        
+        int s = getScore();
+        if (depth >= MAX_DEPTH || pieces >= ROWS*COLS || s == -1000 || s == +1000) return s;
+        
+        int s_max = -100000;
+        int s_min = +100000;
+        int c_min = -1;
+        int c_max = -1;
+        for (int c = 0; c < COLS; c++) {
+            if (col_pieces[c] < ROWS) {
+                doMove(c,p);
+                s = minmax(-p,depth+1);
+                if (s > s_max) {
+                    s_max = s;
+                    c_max = c;
+                }
+                if (s < s_min) {
+                    s_min = s;
+                    c_min = c;
+                }
+                if (depth==0) System.out.println(c + ":" + s );
+                undoMove(c);
+            }
+        }
+        if (depth==0) { // Return best move on level 0
+            if (p>0) { // RED
+                if (s_max==+1000) status = "RED will win!";
+                if (s_max==-1000) status = "RED will loose!";
+                return c_max;
+            }
+            else { // YELLOW
+                if (s_min==-1000) status = "YELLOW will win!";
+                if (s_min==+1000) status = "YELLOW will loose!";
+                return c_min;
+            }
+        }
+        return p>0 ? s_max : s_min;
+    }
+
+    private int getScore() {
         int s = 0;
         for (Line l : lines) {
-            int s1 = l.getScore();
-            if (s1==-1000||s1==+1000) return s1;
+            int s1 = l.sum();
+            if (s1==-4 || s1 ==+4) return s1*250;
             s += s1;
         }
         return s;
     }
-    
-    public int calcBestMove( int p ) {
-        int c_max = -1;
-        int s_max = -100000;
-        for (int c=0; c<COLS; c++) {
-           if (col_pieces[c]<ROWS) {
-           int s = minmax(c,p,0);
-           System.out.println(c+": "+s);
-           if ((s*p)>s_max) {
-                   s_max = s*p;
-                   c_max = c;
-                   System.out.println(" *"+s_max);
-           }
-           }
-        }
-        System.out.println("Best move for "+p+" is "+c_max+" score "+p*s_max);
-        print();
-        return c_max;
-    }
-    
-    private int minmax( int c, int p, int depth ) {
-        
-        int s = 0;
-
-        doMove(c, p);
-        
-        s = getScore();
-
-        if (depth >= MAX_DEPTH || pieces>=ROWS*COLS || s==-1000 || s==+1000) {
-            } 
-            else {
-                int s_max = -100000;
-                for (int c1 = 0; c1 < COLS; c1++) {
-                    if (col_pieces[c1]<ROWS) {
-                    s = p*minmax(c1, -p, depth + 1);
-                    if (s > s_max) {
-                        s_max = s;
-                    }
-                    }
-                }
-                s = p*s_max;
-            }
-
-         undoMove(c);
-        
-         return s;
-        
-    }
-
-private void print() {
+       
+    private void print() {
         System.out.println("--------");
-        for (int c=0; c<COLS; c++) {
-          System.out.print(col_pieces[c]+"|");
-          for (int r=0; r<ROWS; r++) {
-                System.out.print(board[c][r]==0?" ":board[c][r]==1?"R":"Y");
+        for (int c = 0; c < COLS; c++) {
+            System.out.print(col_pieces[c] + "|");
+            for (int r = 0; r < ROWS; r++) {
+                System.out.print(board[c][r] == 0 ? " " : board[c][r] == 1 ? "R" : "Y");
             }
             System.out.println("");
         }
         System.out.println("--------");
-        System.out.println("Score = "+getScore());
-    
-    }
-    
+        System.out.println("Score = " + getScore());
+    } 
     
 }

@@ -147,7 +147,7 @@ public class Connect4Frame extends Parent {
             printStatus("Game over");
         }
         else {
-            int row = game.doMove(column, game.RED); 
+            int row = game.move(column, game.RED); 
             if (row >= 0) {
                 placeDisc(new Disc(true), column,row, true);  
                 
@@ -160,21 +160,7 @@ public class Connect4Frame extends Parent {
     }
 
     private void printGameStatus() {
-        int s = game.getScore();
-        if (game.isOver()) {
-
-            if (s == -1000) {
-                printStatus("Yellow wins");
-            } else if (s == +1000) {
-                printStatus("Red wins");
-            } else {
-                printStatus("Game over");
-
-            }
-        } else {
-            printStatus(" " + s);
-        }
-
+        boardStatusText.setText(game.getStatus());
     }
 
     private void placeDisc(Disc disc, int column, int row, boolean playAnimation) {
@@ -192,17 +178,14 @@ public class Connect4Frame extends Parent {
         
         animation.setOnFinished(e -> {
             
-            if (game.isOver()) {
-                printGameStatus();
-            }
-            else {
+            printGameStatus();
+            if (!game.isOver()) {
                 int c = game.calcBestMove(game.YELLOW);
-                int r = game.doMove(c, game.YELLOW);
+                int r = game.move(c, game.YELLOW);
                 if (r >= 0) {
-                    placeDisc(new Disc(false), c,r, false);
-                    printGameStatus();
-                    
-                };
+                    placeDisc(new Disc(false), c,r, false);   
+                }
+                printGameStatus();
             }
         
             

@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import connect4.Connect4Game.Field;
+
 
 
 
@@ -50,8 +52,6 @@ public class Connect4Frame extends Parent {
 
         super();
 
-        
-        
         this.game = game;
         
         Pane gamePane = new Pane();
@@ -62,7 +62,7 @@ public class Connect4Frame extends Parent {
         gamePane.getChildren().add(gridShape);
         gamePane.getChildren().addAll(makeColumns());
         
-// right
+        // right
         GridPane grid = new GridPane();
         grid.setMinSize(125, 125);
         grid.setHgap(5);
@@ -88,8 +88,6 @@ public class Connect4Frame extends Parent {
         grid.add(v, 1, 0);
 
         getChildren().add(grid);
-        
-
     }
 
     private Shape makeGrid() {
@@ -141,6 +139,7 @@ public class Connect4Frame extends Parent {
         return list;
     }
 
+    
     private void move(int column) {
 
         if (game.isOver()) {
@@ -149,8 +148,7 @@ public class Connect4Frame extends Parent {
         else {
             int row = game.move(column, game.RED); 
             if (row >= 0) {
-                placeDisc(new Disc(true), column,row, true);  
-                
+                placeDisc(new Disc(true), column, row, true);  
             }
         }
     }
@@ -161,6 +159,15 @@ public class Connect4Frame extends Parent {
 
     private void printGameStatus() {
         boardStatusText.setText(game.getStatus());
+        
+        if (game.isOver()) {
+            Connect4Game.Line l = game.getWiningLine();
+            if (l!=null) {
+                for (Connect4Game.Field f : l.getLine()) {
+                  discRoot.getChildren().add(new Marker(f.getCol(), f.getRow()));
+                }
+            }
+        }
     }
 
     private void placeDisc(Disc disc, int column, int row, boolean playAnimation) {
@@ -196,15 +203,21 @@ public class Connect4Frame extends Parent {
         
     }
 
-    
-    
     private class Disc extends Circle {
-        private final boolean red;
         public Disc(boolean red) {
             super(TILE_SIZE / 2, red ? Color.RED : Color.YELLOW);
-            this.red = red;
             setCenterX(TILE_SIZE / 2);
             setCenterY(TILE_SIZE / 2);
+        }
+    }
+
+    private class Marker extends Circle {
+        public Marker( int column, int row) {
+            super(TILE_SIZE / 4, Color.BLACK);
+            setCenterX(TILE_SIZE / 2);
+            setCenterY(TILE_SIZE / 2);
+            setTranslateX(column * (TILE_SIZE + 5) + TILE_SIZE / 4);
+            setTranslateY((game.ROWS-row-1) * (TILE_SIZE + 5) + TILE_SIZE / 4);
         }
     }
 

@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 
-
 public class Connect4Game {
     
     
@@ -29,21 +28,21 @@ public class Connect4Game {
     private String status;
     private boolean over;
    
-    private class Field {
+    public class Field {
         int row,col;
         Field( int col, int row) {
           this.row = row;
           this.col = col;
         }
-        public int get() {
-            return board[col][row];
-        }
+        public int get() { return board[col][row]; }
+        public int getRow() {return row; }
+        public int getCol() {return col; }
     }
    
     
-    private class Line {
+    public class Line {
         
-        List<Field> line;
+        private List<Field> line;
         
         public Line(int col, int row, int colo, int rowo) {
             line = new ArrayList<Field>();
@@ -53,6 +52,8 @@ public class Connect4Game {
             print();
         }
 
+        public List<Field> getLine() { return line; }
+        
         public void print() {
             System.out.print("Line ");
             for (Field f: line) { 
@@ -93,13 +94,12 @@ public class Connect4Game {
         for (int r=0; r<ROWS; r++) {
             for (int c=0; c<COLS; c++) {
                 if (r+4<=ROWS) lines.add(new Line(c,r,0,1)); // Vertical
-                if (c+4<=COLS) lines.add(new Line(c,r,1,0));
-                if (r+4<=ROWS && c+4<=COLS) lines.add(new Line(c,r,1,1));
-                if (r+4<=ROWS && c-4>=0)lines.add(new Line(c,r,-1,1));
+                if (c+4<=COLS) lines.add(new Line(c,r,1,0)); // Horizontal
+                if (r+4<=ROWS && c+4<=COLS) lines.add(new Line(c,r,1,1)); // Diagonal
+                if (r+4<=ROWS && c-3>=0)lines.add(new Line(c,r,-1,1));
             }
         }
        
-        
         newGame();
     }
     
@@ -113,7 +113,7 @@ public class Connect4Game {
             }
         }
         
-        status = "Start";
+        status = "";
         over = false;
     }
     
@@ -125,6 +125,15 @@ public class Connect4Game {
         return status;
     }
     
+    public Line getWiningLine() {
+        for (Line l : lines) {
+            int s1 = l.sum();
+            if (s1==-4 || s1 ==+4) {
+                return l;
+            }
+        }
+        return null;
+    }
     
     public int move(int c, int p) {
       
@@ -141,9 +150,13 @@ public class Connect4Game {
                 status = "Game over!";
                 over = true;
             }
+
+            print();
+            System.out.println("Status = " + status );
+
             return col_pieces[c] - 1;
-        } else {
-            status = "Illegal move";
+        } 
+        else {
             return -1;
         }
     }
@@ -164,20 +177,82 @@ public class Connect4Game {
     public int calcBestMove(int p) {
 
         int c = minmax(p,0);
+        
         System.out.println("Best move for " + p + " is " + c );
-        print();
+        
         return c;
     }
 
-    private int minmax( int p, int depth ) {
+private int minmax( int p, int depth ) {
+        
+        int s = getScore();
+        if (depth >= MAX_DEPTH || pieces >= ROWS*COLS || s == -1000 || s == +1000) return s;
+        
+        int s_max = -100000;
+        int c_max = -1;
+        for (int c = 0; c < COLS; c++) {
+            if (col_pieces[c] < ROWS) {
+                doMove(c,p);
+                s = p*minmax(-p,depth+1);
+                if (s > s_max) {
+                    s_max = s;
+                    c_max = c;
+                }
+                if (depth==0) System.out.println(c + ":" + s );
+                undoMove(c);
+            }
+        }
+        if (depth==0) { // Return best move on level 0
+                if (s_max==+1000) status = "Computer will win!";
+                if (s_max==-1000) status = "Computer will loose!";
+                return c_max;
+        }
+        return s_max*p;
+    }
+
+    private int getScore() {
+        int s = 0;
+        for (Line l : lines) {
+            int s1 = l.sum();
+            if (s1==-4 || s1 ==+4) return s1*250;
+            s += s1;
+        }
+        return s;
+    }
+       
+    private void print() {
+        System.out.println("--------");
+        for (int c = 0; c < COLS; c++) {
+            System.out.print(col_pieces[c] + "|");
+            for (int r = 0; r < ROWS; r++) {
+                System.out.print(board[c][r] == 0 ? " " : board[c][r] == 1 ? "R" : "Y");
+            }
+            System.out.println("");
+        }
+        System.out.println("--------");
+        System.out.println("Score = " + getScore());
+    } 
+    
+}
+
+
+/*
+ 
+
+ */
+
+
+
+/*
+  private int minmax( int p, int depth ) {
         
         int s = getScore();
         if (depth >= MAX_DEPTH || pieces >= ROWS*COLS || s == -1000 || s == +1000) return s;
         
         int s_max = -100000;
         int s_min = +100000;
-        int c_min = -1;
         int c_max = -1;
+        int c_min = -1;
         for (int c = 0; c < COLS; c++) {
             if (col_pieces[c] < ROWS) {
                 doMove(c,p);
@@ -208,28 +283,5 @@ public class Connect4Game {
         }
         return p>0 ? s_max : s_min;
     }
-
-    private int getScore() {
-        int s = 0;
-        for (Line l : lines) {
-            int s1 = l.sum();
-            if (s1==-4 || s1 ==+4) return s1*250;
-            s += s1;
-        }
-        return s;
-    }
-       
-    private void print() {
-        System.out.println("--------");
-        for (int c = 0; c < COLS; c++) {
-            System.out.print(col_pieces[c] + "|");
-            for (int r = 0; r < ROWS; r++) {
-                System.out.print(board[c][r] == 0 ? " " : board[c][r] == 1 ? "R" : "Y");
-            }
-            System.out.println("");
-        }
-        System.out.println("--------");
-        System.out.println("Score = " + getScore());
-    } 
-    
-}
+ 
+*/

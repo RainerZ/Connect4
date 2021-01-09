@@ -14,55 +14,42 @@ public class Connect4Game {
     private final int EMPTY = 0;
 
     private int[][] board;
-    private int[] col_pieces;
-    private int pieces;
+    private int[] colPieces;
+    private int totPieces;
     private List<Line> lines;
     private String statusText;
-    private boolean over;
+    private boolean gameOver;
     private int nextPlayer;
     private int maxDepth;
-    private int[] ci = { 3, 4, 2, 1, 5, 0, 6 };
+    private int[] colOrder = { 3, 4, 2, 1, 5, 0, 6 };
 
     private class Field {
-        int row, col;
+        
+        final int row, col;
 
         Field(int col, int row) {
             this.row = row;
             this.col = col;
         }
 
-        public int get() {
-            return board[col][row];
-        }
-
-        public int getRow() {
-            return row;
-        }
-
-        public int getCol() {
-            return col;
-        }
+        public int get() { return board[col][row]; }
     }
 
     private class Line {
 
-        private List<Field> line;
+        private List<Field> fields;
 
         public Line(int col, int row, int colo, int rowo) {
-            line = new ArrayList<Field>();
+            fields = new ArrayList<Field>();
             for (int i = 0; i < 4; i++) {
-                line.add(new Field(col + i * colo, row + i * rowo));
+                fields.add(new Field(col + i * colo, row + i * rowo));
             }
         }
 
-        public List<Field> getLine() {
-            return line;
-        }
-
-        public int sum() {
+        public int sum() { 
 
             int s = 0;
-            for (Field f : line) {
+            for (Field f : fields) {
                 int sf = f.get();
                 if (s * sf < 0) {
                     return 0;
@@ -79,7 +66,7 @@ public class Connect4Game {
 
         // Create board
         board = new int[COLS][ROWS];
-        col_pieces = new int[COLS];
+        colPieces = new int[COLS];
 
         // Create all lines
         lines = new ArrayList<Line>();
@@ -101,22 +88,22 @@ public class Connect4Game {
 
     public void newGame() {
 
-        pieces = 0;
+        totPieces = 0;
         for (int c = 0; c < COLS; c++) {
-            col_pieces[c] = 0;
+            colPieces[c] = 0;
             for (int r = 0; r < ROWS; r++) {
                 board[c][r] = EMPTY;
             }
         }
 
         statusText = "";
-        over = false;
+        gameOver = false;
         nextPlayer = RED;
         setOptimalMaxDepth();
     }
 
     public boolean isOver() {
-        return over;
+        return gameOver;
     }
 
     public String getStatusText() {
@@ -130,10 +117,10 @@ public class Connect4Game {
     public void markWinningLine(Connect4Frame gui) {
 
         for (Line l : lines) {
-            int s1 = l.sum();
-            if (s1 == -4 || s1 == +4) {
-                for (Field f : l.getLine()) {
-                    gui.addMarker(f.getCol(), f.getRow());
+            int s = l.sum();
+            if (s == -4 || s == +4) {
+                for (Field f : l.fields) {
+                    gui.addMarker(f.col, f.row);
                 }
             }
         }
@@ -147,47 +134,40 @@ public class Connect4Game {
 
     public int move(int c, int p) {
 
-        if (col_pieces[c] < ROWS && !over && nextPlayer == p) {
+        if (colPieces[c] < ROWS && !gameOver && nextPlayer == p) {
             doMove(c, p);
             int s = getScore(RED);
             if (s <= -1000) {
                 statusText = "YELLOW wins!";
-                over = true;
+                gameOver = true;
             } else if (s >= +1000) {
                 statusText = "RED wins!";
-                over = true;
-            } else if (pieces >= ROWS * COLS) {
+                gameOver = true;
+            } else if (totPieces >= ROWS * COLS) {
                 statusText = "Game over!";
-                over = true;
+                gameOver = true;
             }
             nextPlayer = -nextPlayer;
             setOptimalMaxDepth();
-            return col_pieces[c] - 1;
+            return colPieces[c] - 1;
         } else {
             return -1;
         }
     }
 
     
-    
-    private void doMove(int c, int p) {
-
-        board[c][col_pieces[c]++] = p;
-        pieces++;
-    }
-
     private int minmax(int p, int depth, int alpha, int beta) {
 
         int s = getScore(p);
         if (depth >= maxDepth)
             return s;
-        if (pieces >= ROWS * COLS || s == -1000 || s == +1000)
+        if (totPieces >= ROWS * COLS || s == -1000 || s == +1000)
             return s; // Game over
         int s_max = -100000;
         int c_max = -1;
         for (int i = 0; i < COLS; i++) {
-            int c = ci[i];
-            if (col_pieces[c] < ROWS) {
+            int c = colOrder[i];
+            if (colPieces[c] < ROWS) {
                 doMove(c, p);
                 s = -minmax(-p, depth + 1, -beta, -alpha);
                 if (s > s_max) {
@@ -214,9 +194,15 @@ public class Connect4Game {
         return s_max; // Return score on other levels
     }
 
+    private void doMove(int c, int p) {
+        board[c][colPieces[c]++] = p;
+        totPieces++;
+    }
+
+
     private void undoMove(int c) {
-        board[c][--col_pieces[c]] = 0;
-        pieces--;
+        board[c][--colPieces[c]] = 0;
+        totPieces--;
     }
 
 
@@ -232,16 +218,16 @@ public class Connect4Game {
     }
 
     private void setOptimalMaxDepth() {
-        if (ROWS * COLS - pieces < 42 / 3) {
+        if (ROWS * COLS - totPieces < 42 / 3) {
             maxDepth = 20;
-        } else if (ROWS * COLS - pieces < 42 / 2) {
+        } else if (ROWS * COLS - totPieces < 42 / 2) {
             maxDepth = 15;
         } else {
             maxDepth = 10;
         }
         int n = 0;
         for (int i = 0; i < COLS; i++) {
-            if (col_pieces[i] == ROWS)
+            if (colPieces[i] == ROWS)
                 n++;
         }
         maxDepth += n / 2;

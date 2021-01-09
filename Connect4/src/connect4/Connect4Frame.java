@@ -1,17 +1,12 @@
 package connect4;
 
-
-
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
-import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.geometry.Point2D;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.effect.Light;
 import javafx.scene.effect.Lighting;
@@ -23,16 +18,11 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import connect4.Connect4Game.Field;
 
 public class Connect4Frame extends Parent {
 
@@ -123,7 +113,7 @@ public class Connect4Frame extends Parent {
             Rectangle rect = new Rectangle(TILE_SIZE, (game.ROWS + 1) * TILE_SIZE);
             rect.setTranslateX(x * (TILE_SIZE + 5) + TILE_SIZE / 4);
             rect.setFill(Color.TRANSPARENT);
-            rect.setOnMouseEntered(e -> rect.setFill(Color.rgb(200, 200, 50, 0.3)));
+            rect.setOnMouseEntered(e -> rect.setFill(Color.rgb(200, 200, 50, 0.2)));
             rect.setOnMouseExited(e -> rect.setFill(Color.TRANSPARENT));
             final int column = x;
             rect.setOnMouseClicked(e -> humanMove(column));

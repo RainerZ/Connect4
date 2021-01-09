@@ -2,15 +2,15 @@ package connect4;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class Connect4Game {
 
     public final int COLS = 7;
     public final int ROWS = 6;
+    
     public final int RED = +1;
     public final int YELLOW = -1;
+    
     private final int EMPTY = 0;
 
     private int[][] board;
@@ -23,7 +23,7 @@ public class Connect4Game {
     private int maxDepth;
     private int[] ci = { 3, 4, 2, 1, 5, 0, 6 };
 
-    public class Field {
+    private class Field {
         int row, col;
 
         Field(int col, int row) {
@@ -44,7 +44,7 @@ public class Connect4Game {
         }
     }
 
-    public class Line {
+    private class Line {
 
         private List<Field> line;
 
@@ -74,6 +74,7 @@ public class Connect4Game {
         }
     }
 
+    
     Connect4Game() {
 
         // Create board
@@ -170,6 +171,8 @@ public class Connect4Game {
         }
     }
 
+    
+    
     private void doMove(int c, int p) {
 
         board[c][col_pieces[c]++] = p;
@@ -249,7 +252,7 @@ public class Connect4Game {
         maxDepth += n / 2;
     }
 
-    void print() {
+    private void print() {
         System.out.println("--------");
         for (int c = 0; c < COLS; c++) {
             System.out.print(col_pieces[c] + "|");

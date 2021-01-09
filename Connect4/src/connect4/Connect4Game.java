@@ -11,23 +11,18 @@ public class Connect4Game {
     
     public final int COLS;
     public final int ROWS;
-
-    private final int MAX_DEPTH = 10;
-
     public final int RED = +1;
     public final int YELLOW = -1;
-    
     private final int EMPTY = 0;
     
     private int[][] board;
     private int[] col_pieces;
-    private int pieces;
-    
+    private int pieces;    
     private List<Line> lines;
-    
     private String status;
     private boolean over;
-
+    private int nextPlayer;
+    private int maxDepth;
     private int[] ci = { 3,4,2,1,5,0,6};
    
     public class Field {
@@ -51,19 +46,10 @@ public class Connect4Game {
             for (int i=0; i<4;i++) {
               line.add(new Field(col+i*colo,row+i*rowo));
             }
-            print();
         }
 
         public List<Field> getLine() { return line; }
         
-        public void print() {
-            System.out.print("Line ");
-            for (Field f: line) { 
-                System.out.print("("+f.row+","+f.col+") ");
-            }
-            System.out.println();
-        }
-
         public int sum() {
             
             int s = 0;
@@ -117,6 +103,8 @@ public class Connect4Game {
         
         status = "";
         over = false;
+        nextPlayer = RED;
+        setOptimalMaxDepth();
     }
     
     public boolean isOver() {
@@ -139,7 +127,7 @@ public class Connect4Game {
     
     public int move(int c, int p) {
       
-        if (col_pieces[c] < ROWS && !over) {
+        if (col_pieces[c] < ROWS && !over && nextPlayer==p) {
             doMove(c, p);
             int s = getScore(RED);
             if (s <= -1000) {
@@ -155,7 +143,8 @@ public class Connect4Game {
 
             print();
             System.out.println("Status = " + status );
-
+            nextPlayer = -nextPlayer;
+            setOptimalMaxDepth();
             return col_pieces[c] - 1;
         } 
         else {
@@ -170,26 +159,12 @@ public class Connect4Game {
     }
     
 
-    private void undoMove(int c) {
-      
-        board[c][--col_pieces[c]] = 0;
-        pieces--;
-    }
-    
-    public int calcBestMove(int p) {
-
-        int c = minmax(p,0,-100000,+100000);
-        
-        System.out.println("Best move for " + p + " is " + c );
-        
-        return c;
-    }
 
 private int minmax( int p, int depth, int alpha, int beta ) {
         
         int s = getScore(p);
-        if (depth >= MAX_DEPTH || pieces >= ROWS*COLS || s == -1000 || s == +1000) return s;
-        
+        if (depth >= maxDepth) return s; 
+        if (pieces >= ROWS*COLS || s == -1000 || s == +1000) return s; // Game over
         int s_max = -100000;
         int c_max = -1;
         for (int i = 0; i < COLS; i++) {
@@ -208,16 +183,25 @@ private int minmax( int p, int depth, int alpha, int beta ) {
                         break;
                     }
                 }
-                if (depth==0) System.out.println(c + ":" + s );
                 undoMove(c);
             }
         }
-        if (depth==0) { // Return best move on level 0
+        if (depth==0) { // Return best move for actual board and player on level 0
                 if (s_max==+1000) status = "Computer will win!";
                 if (s_max==-1000) status = "Computer will loose!";
                 return c_max;
         }
-        return s_max;
+        return s_max; // Return score on other levels
+    }
+
+    private void undoMove(int c) {    
+        board[c][--col_pieces[c]] = 0;
+        pieces--;
+    }
+    
+    public int calcBestMove(int p) {
+        int c = minmax(p,0,-100000,+100000);       
+        return c;
     }
 
     private int getScore(int p) {
@@ -230,6 +214,21 @@ private int minmax( int p, int depth, int alpha, int beta ) {
         return p*s;
     }
        
+    private void setOptimalMaxDepth() {
+        if (ROWS*COLS-pieces<42/3) {
+            maxDepth = 20;
+        }
+        else if (ROWS*COLS-pieces<42/2) {
+            maxDepth = 15;
+        }
+        else {
+            maxDepth = 10;
+        }
+        for (int i=0;i<COLS;i++) {
+            if (col_pieces[i]==ROWS) maxDepth++;
+        }
+    }
+
     private void print() {
         System.out.println("--------");
         for (int c = 0; c < COLS; c++) {
@@ -248,45 +247,3 @@ private int minmax( int p, int depth, int alpha, int beta ) {
 
 
 
-/*
-  private int minmax( int p, int depth ) {
-        
-        int s = getScore();
-        if (depth >= MAX_DEPTH || pieces >= ROWS*COLS || s == -1000 || s == +1000) return s;
-        
-        int s_max = -100000;
-        int s_min = +100000;
-        int c_max = -1;
-        int c_min = -1;
-        for (int c = 0; c < COLS; c++) {
-            if (col_pieces[c] < ROWS) {
-                doMove(c,p);
-                s = minmax(-p,depth+1);
-                if (s > s_max) {
-                    s_max = s;
-                    c_max = c;
-                }
-                if (s < s_min) {
-                    s_min = s;
-                    c_min = c;
-                }
-                if (depth==0) System.out.println(c + ":" + s );
-                undoMove(c);
-            }
-        }
-        if (depth==0) { // Return best move on level 0
-            if (p>0) { // RED
-                if (s_max==+1000) status = "RED will win!";
-                if (s_max==-1000) status = "RED will loose!";
-                return c_max;
-            }
-            else { // YELLOW
-                if (s_min==-1000) status = "YELLOW will win!";
-                if (s_min==+1000) status = "YELLOW will loose!";
-                return c_min;
-            }
-        }
-        return p>0 ? s_max : s_min;
-    }
- 
-*/

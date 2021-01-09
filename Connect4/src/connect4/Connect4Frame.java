@@ -190,8 +190,8 @@ public class Connect4Frame extends Parent {
                     int r = game.move(c, game.YELLOW);
                     if (r >= 0) {
                         placeDisc(new Disc(false), c,r, false);   
+                        printGameStatus();
                     }
-                    printGameStatus();
                 }                
             });
             

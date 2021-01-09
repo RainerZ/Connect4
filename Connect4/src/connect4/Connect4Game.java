@@ -160,9 +160,6 @@ public class Connect4Game {
                 statusText = "Game over!";
                 over = true;
             }
-
-            print();
-            System.out.println("Status = " + statusText);
             nextPlayer = -nextPlayer;
             setOptimalMaxDepth();
             return col_pieces[c] - 1;
@@ -193,8 +190,6 @@ public class Connect4Game {
             if (col_pieces[c] < ROWS) {
                 doMove(c, p);
                 s = -minmax(-p, depth + 1, -beta, -alpha);
-                if (depth == 0)
-                    System.out.println(c + ":" + s + ", alpha=" + alpha + " beta=" + beta);
                 if (s > s_max) {
                     s_max = s;
                     c_max = c;
@@ -250,19 +245,6 @@ public class Connect4Game {
                 n++;
         }
         maxDepth += n / 2;
-    }
-
-    private void print() {
-        System.out.println("--------");
-        for (int c = 0; c < COLS; c++) {
-            System.out.print(col_pieces[c] + "|");
-            for (int r = 0; r < ROWS; r++) {
-                System.out.print(board[c][r] == 0 ? " " : board[c][r] == 1 ? "R" : "Y");
-            }
-            System.out.println("");
-        }
-        System.out.println("--------");
-        System.out.println("RED Score = " + getScore(RED));
     }
 
 }

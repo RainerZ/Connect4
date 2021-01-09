@@ -8,8 +8,6 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
-import javafx.scene.effect.Light;
-import javafx.scene.effect.Lighting;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -26,7 +24,7 @@ import java.util.List;
 
 public class Connect4Frame extends Parent {
 
-    private final int TILE_SIZE = 80;
+    private final int DISC_SIZE = 80;
     
     private Pane discRoot;
     private Connect4Game game;
@@ -43,9 +41,7 @@ public class Connect4Frame extends Parent {
         Pane gamePane = new Pane();
         discRoot = new Pane();
         gamePane.getChildren().add(discRoot);
-
-        Shape gridShape = makeGrid();
-        gamePane.getChildren().add(gridShape);
+        gamePane.getChildren().add(makeGrid());
         gamePane.getChildren().addAll(makeColumns());
         
         GridPane grid = new GridPane();
@@ -85,35 +81,28 @@ public class Connect4Frame extends Parent {
     }
 
     private Shape makeGrid() {
-        Shape shape = new Rectangle((game.COLS + 1) * TILE_SIZE, (game.ROWS + 1) * TILE_SIZE);
+        Shape shape = new Rectangle((game.COLS + 1) * DISC_SIZE, (game.ROWS + 1) * DISC_SIZE);
         for (int y = 0; y < game.ROWS; y++) {
             for (int x = 0; x < game.COLS; x++) {
-                Circle circle = new Circle(TILE_SIZE / 2);
-                circle.setCenterX(TILE_SIZE / 2);
-                circle.setCenterY(TILE_SIZE / 2);
-                circle.setTranslateX(x * (TILE_SIZE + 5) + TILE_SIZE / 4);
-                circle.setTranslateY(y * (TILE_SIZE + 5) + TILE_SIZE / 4);
+                Circle circle = new Circle(DISC_SIZE / 2);
+                circle.setCenterX(DISC_SIZE / 2);
+                circle.setCenterY(DISC_SIZE / 2);
+                circle.setTranslateX(x * (DISC_SIZE + 5) + DISC_SIZE / 4);
+                circle.setTranslateY(y * (DISC_SIZE + 5) + DISC_SIZE / 4);
                 shape = Shape.subtract(shape, circle);
             }
         }
-        Light.Distant light = new Light.Distant();
-        light.setAzimuth(45.0);
-        light.setElevation(30.0);
-        Lighting lighting = new Lighting();
-        lighting.setLight(light);
-        lighting.setSurfaceScale(5.0);
-        shape.setFill(Color.BLUE);
-        shape.setEffect(lighting);
+        shape.setFill(Color.DARKBLUE);
         return shape;
     }
 
     private List<Rectangle> makeColumns() {
         List<Rectangle> list = new ArrayList<>();
         for (int x = 0; x < game.COLS; x++) {
-            Rectangle rect = new Rectangle(TILE_SIZE, (game.ROWS + 1) * TILE_SIZE);
-            rect.setTranslateX(x * (TILE_SIZE + 5) + TILE_SIZE / 4);
+            Rectangle rect = new Rectangle(DISC_SIZE, (game.ROWS + 1) * DISC_SIZE);
+            rect.setTranslateX(x * (DISC_SIZE + 5) + DISC_SIZE / 4);
             rect.setFill(Color.TRANSPARENT);
-            rect.setOnMouseEntered(e -> rect.setFill(Color.rgb(200, 200, 50, 0.2)));
+            rect.setOnMouseEntered(e -> rect.setFill(Color.rgb(200, 200, 200, 0.2)));
             rect.setOnMouseExited(e -> rect.setFill(Color.TRANSPARENT));
             final int column = x;
             rect.setOnMouseClicked(e -> humanMove(column));
@@ -153,18 +142,28 @@ public class Connect4Frame extends Parent {
 
     private void placeDisc(Disc disc, int column, int row) {        
         discRoot.getChildren().add(disc);
-        disc.setTranslateX(column * (TILE_SIZE + 5) + TILE_SIZE / 4);
+        disc.setTranslateX(column * (DISC_SIZE + 5) + DISC_SIZE / 4);
         TranslateTransition animation = new TranslateTransition(Duration.seconds(0.3), disc);
-        animation.setToY((game.ROWS-row-1) * (TILE_SIZE + 5) + TILE_SIZE / 4);
+        animation.setToY((game.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);
         animation.setOnFinished(e -> { printGameStatus(); timer.play(); });
         animation.play();
     }
 
     private class Disc extends Circle {
         public Disc(boolean red) {
-            super(TILE_SIZE / 2, red ? Color.RED : Color.YELLOW);
-            setCenterX(TILE_SIZE / 2);
-            setCenterY(TILE_SIZE / 2);
+            super(DISC_SIZE / 2, red ? Color.RED : Color.YELLOW);
+            setCenterX(DISC_SIZE / 2);
+            setCenterY(DISC_SIZE / 2);
+        }
+    }
+
+    private class Marker extends Circle {
+        public Marker( int column, int row) {
+            super(DISC_SIZE / 4, Color.BLACK);
+            setCenterX(DISC_SIZE / 2);
+            setCenterY(DISC_SIZE / 2);
+            setTranslateX(column * (DISC_SIZE + 5) + DISC_SIZE / 4);
+            setTranslateY((game.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);
         }
     }
 
@@ -172,15 +171,6 @@ public class Connect4Frame extends Parent {
         discRoot.getChildren().add(new Marker(col, row));
     }
 
-    private class Marker extends Circle {
-        public Marker( int column, int row) {
-            super(TILE_SIZE / 4, Color.BLACK);
-            setCenterX(TILE_SIZE / 2);
-            setCenterY(TILE_SIZE / 2);
-            setTranslateX(column * (TILE_SIZE + 5) + TILE_SIZE / 4);
-            setTranslateY((game.ROWS-row-1) * (TILE_SIZE + 5) + TILE_SIZE / 4);
-        }
-    }
 
     
 }

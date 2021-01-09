@@ -39,7 +39,7 @@ public class Connect4Game {
 
         private List<Field> fields;
 
-        public Line(int col, int row, int colo, int rowo) {
+        Line(int col, int row, int colo, int rowo) {
             fields = new ArrayList<Field>();
             for (int i = 0; i < 4; i++) {
                 fields.add(new Field(col + i * colo, row + i * rowo));
@@ -122,6 +122,7 @@ public class Connect4Game {
                 for (Field f : l.fields) {
                     gui.addMarker(f.col, f.row);
                 }
+                return;
             }
         }
 
@@ -176,7 +177,7 @@ public class Connect4Game {
                 }
                 if (s > alpha) {
                     alpha = s;
-                    if (alpha > beta) {
+                    if (alpha > beta && depth>0) {
                         undoMove(c);
                         break;
                     }
@@ -210,8 +211,7 @@ public class Connect4Game {
         int s = 0;
         for (Line l : lines) {
             int s1 = l.sum();
-            if (s1 == -4 || s1 == +4)
-                return p * s1 * 250;
+            if (s1 == -4 || s1 == +4) return p * s1 * 250;
             s += s1;
         }
         return p * s;

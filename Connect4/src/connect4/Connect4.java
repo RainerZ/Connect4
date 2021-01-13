@@ -12,11 +12,11 @@ public class Connect4 extends Application {
         final Connect4Game game = new Connect4Game(); // The game logic
         final Connect4Frame frame = new Connect4Frame(game); // The game GUI element
         
-        stage.setScene(new Scene(frame));
+        stage.setScene(new Scene(frame)); 
         stage.show();
     }
 
     public static void main(String[] args) {
-        launch(args);
+        launch(args); // JavaFX launch
     }
 }

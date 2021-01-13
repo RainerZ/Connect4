@@ -211,7 +211,7 @@ public class Connect4Game {
             if (s_max == +1000)
                 statusText = "Computer will win!";
             if (s_max == -1000)
-                statusText = "Computer will loose!";
+                statusText = "Computer may loose!";
             return c_max;
         }
         return s_max; // Return score on other levels

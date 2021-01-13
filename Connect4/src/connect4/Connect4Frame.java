@@ -75,6 +75,7 @@ public class Connect4Frame extends Parent {
         statusText2 = new Text();
         VBox v = new VBox(b0,b1,statusText1,statusText2);
         VBox.setMargin(b0, new Insets(2, 2, 2, 2));
+        VBox.setMargin(b1, new Insets(2, 2, 2, 2));
         grid.add(v, 1, 0);
 
         getChildren().add(grid);
@@ -150,7 +151,7 @@ public class Connect4Frame extends Parent {
     }
 
     public void placeDisc(int player, boolean marker, int column, int row) {  
-        Circle disc = new Circle(DISC_SIZE / (marker?4:2), player==game.EMPTY ? Color.LIGHTGREY : player==game.RED ? Color.RED : Color.YELLOW);
+        Circle disc = new Circle(DISC_SIZE / (marker?4:2), player==game.EMPTY ? Color.WHITE : player==game.RED ? Color.RED : Color.YELLOW);
         disc.setCenterX(DISC_SIZE / 2);
         disc.setCenterY(DISC_SIZE / 2);
         discRoot.getChildren().add(disc);

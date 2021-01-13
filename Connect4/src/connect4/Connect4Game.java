@@ -2,6 +2,8 @@ package connect4;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
+import java.util.function.BiConsumer;
 
 public class Connect4Game {
 
@@ -10,8 +12,7 @@ public class Connect4Game {
     
     public final int RED = +1;
     public final int YELLOW = -1;
-    
-    private final int EMPTY = 0;
+    public final int EMPTY = 0;
 
     private int[][] board;
     private int[] colPieces;
@@ -22,6 +23,7 @@ public class Connect4Game {
     private int nextPlayer;
     private int maxDepth;
     private int[] colOrder = { 3, 4, 2, 1, 5, 0, 6 };
+    private Stack<Field> moveStack;
 
     private class Field {
         
@@ -96,6 +98,7 @@ public class Connect4Game {
         gameOver = false;
         nextPlayer = RED;
         setOptimalMaxDepth();
+        moveStack = new Stack<Field>();
     }
 
     public boolean isOver() {
@@ -110,13 +113,17 @@ public class Connect4Game {
         return nextPlayer;
     }
 
-    public void markWinningLine(Connect4Frame gui) {
+    public void markWinningLine(Connect4Frame gui, boolean mark) {
 
         for (Line l : lines) {
             int s = l.sum();
             if (s == -4 || s == +4) {
                 for (Field f : l.fields) {
-                    gui.addMarker(f.col, f.row);
+                    if (mark) {
+                        gui.placeDisc(EMPTY, true, f.col, f.row);
+                    } else {
+                        gui.placeDisc(board[f.col][f.row], false, f.col, f.row);
+                    }
                 }
                 return;
             }
@@ -131,8 +138,10 @@ public class Connect4Game {
 
     public int move(int c, int p) {
 
-        if (colPieces[c] < ROWS && !gameOver && nextPlayer == p) {
+        int r = colPieces[c];
+        if ( r<ROWS && !gameOver && nextPlayer == p) {
             doMove(c, p);
+            moveStack.push(new Field(c,r));
             int s = getScore(RED);
             if (s <= -1000) {
                 statusText = "YELLOW wins!";
@@ -152,7 +161,24 @@ public class Connect4Game {
         }
     }
 
-    
+    public void undo(Connect4Frame gui) {
+
+        if (totPieces >= 2) {
+            if (gameOver) {
+                markWinningLine(gui, false); // Remove winning line markers
+                gameOver = false;
+            }
+            for (int i = 0; i < 2; i++) { // Undo player and computer move and place a grey disc
+                Field f = moveStack.pop();
+                int r = f.row;
+                int c = f.col;
+                undoMove(c);
+                gui.placeDisc(EMPTY, false, c, r);
+                statusText = "";
+            }
+        }
+    }
+
     private int minmax(int p, int depth, int alpha, int beta) {
 
         int s = getScore(p);

@@ -62,9 +62,18 @@ public class Connect4Frame extends Parent {
                 statusText2.setText("");
             }
         });
+        Button b1 = new Button("Undo");
+        b1.setMinWidth(100);
+        final Connect4Frame f = this;
+        b1.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e) {
+                game.undo(f);    
+            }
+        });
         statusText1 = new Text();
         statusText2 = new Text();
-        VBox v = new VBox(b0,statusText1,statusText2);
+        VBox v = new VBox(b0,b1,statusText1,statusText2);
         VBox.setMargin(b0, new Insets(2, 2, 2, 2));
         grid.add(v, 1, 0);
 
@@ -117,7 +126,7 @@ public class Connect4Frame extends Parent {
             int row = game.move(col, game.RED); 
             if (row >= 0) {
                 timer.pause();
-                placeDisc(new Disc(true), col, row);  
+                placeDisc(game.RED, false, col, row);  
             }
         }
     }
@@ -127,7 +136,7 @@ public class Connect4Frame extends Parent {
             int col = game.calcBestMove(game.YELLOW);
             int row = game.move(col, game.YELLOW);
             if (row >= 0) {
-                placeDisc(new Disc(false), col, row);
+                placeDisc(game.YELLOW, false, col, row);
             }
         }
     }
@@ -136,41 +145,25 @@ public class Connect4Frame extends Parent {
         statusText1.setText(game.getStatusText());
         statusText2.setText("");
         if (game.isOver()) {
-            game.markWinningLine(this);
+            game.markWinningLine(this,true);
         }
     }
 
-    private void placeDisc(Disc disc, int column, int row) {        
+    public void placeDisc(int player, boolean marker, int column, int row) {  
+        Circle disc = new Circle(DISC_SIZE / (marker?4:2), player==game.EMPTY ? Color.LIGHTGREY : player==game.RED ? Color.RED : Color.YELLOW);
+        disc.setCenterX(DISC_SIZE / 2);
+        disc.setCenterY(DISC_SIZE / 2);
         discRoot.getChildren().add(disc);
         disc.setTranslateX(column * (DISC_SIZE + 5) + DISC_SIZE / 4);
-        TranslateTransition animation = new TranslateTransition(Duration.seconds(0.3), disc);
-        animation.setToY((game.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);
-        animation.setOnFinished(e -> { printGameStatus(); timer.play(); });
-        animation.play();
-    }
-
-    private class Disc extends Circle {
-        public Disc(boolean red) {
-            super(DISC_SIZE / 2, red ? Color.RED : Color.YELLOW);
-            setCenterX(DISC_SIZE / 2);
-            setCenterY(DISC_SIZE / 2);
+        if (marker) {
+            disc.setTranslateY((game.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);            
+        }
+        else {
+            TranslateTransition animation = new TranslateTransition(Duration.seconds(0.3), disc);
+            animation.setToY((game.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);
+            animation.setOnFinished(e -> { printGameStatus(); timer.play(); });
+            animation.play();
         }
     }
-
-    private class Marker extends Circle {
-        public Marker( int column, int row) {
-            super(DISC_SIZE / 4, Color.BLACK);
-            setCenterX(DISC_SIZE / 2);
-            setCenterY(DISC_SIZE / 2);
-            setTranslateX(column * (DISC_SIZE + 5) + DISC_SIZE / 4);
-            setTranslateY((game.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);
-        }
-    }
-
-    public void addMarker(int col, int row) {
-        discRoot.getChildren().add(new Marker(col, row));
-    }
-
-
     
 }

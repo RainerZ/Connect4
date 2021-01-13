@@ -37,8 +37,8 @@ public class Connect4Game {
 
     private class Line {
 
-        private List<Field> fields;
-
+        private final List<Field> fields;
+        
         Line(int col, int row, int colo, int rowo) {
             fields = new ArrayList<Field>();
             for (int i = 0; i < 4; i++) {
@@ -47,15 +47,11 @@ public class Connect4Game {
         }
 
         public int sum() { 
-
             int s = 0;
             for (Field f : fields) {
                 int sf = f.get();
-                if (s * sf < 0) {
-                    return 0;
-                } else {
-                    s += sf;
-                }
+                if (s * sf < 0) return 0;
+                s += sf;
             }
             return s;
         }
@@ -207,7 +203,7 @@ public class Connect4Game {
     }
 
 
-    private int getScore(int p) {
+    private int getScore(int p) {        
         int s = 0;
         for (Line l : lines) {
             int s1 = l.sum();

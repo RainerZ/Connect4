@@ -17,6 +17,6 @@ public class Connect4 extends Application {
     }
 
     public static void main(String[] args) {
-        launch(args); // JavaFX launch ...
+        launch(args); // JavaFX launch ....
     }
 }

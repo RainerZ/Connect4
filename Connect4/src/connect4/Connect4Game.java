@@ -114,7 +114,6 @@ public class Connect4Game {
     }
 
     public void markWinningLine(Connect4Frame gui, boolean mark) {
-
         for (Line l : lines) {
             int s = l.sum();
             if (s == -4 || s == +4) {

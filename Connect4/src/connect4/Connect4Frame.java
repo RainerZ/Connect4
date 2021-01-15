@@ -1,7 +1,6 @@
 package connect4;
+// the javafx gui
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -30,7 +29,6 @@ public class Connect4Frame extends Parent {
     private Connect4Game game;
     private Text statusText1;
     private Text statusText2;
-    Timeline timer;
     
     Connect4Frame(final Connect4Game game) {
 
@@ -64,12 +62,9 @@ public class Connect4Frame extends Parent {
         });
         Button b1 = new Button("Undo");
         b1.setMinWidth(100);
-        final Connect4Frame f = this;
         b1.setOnAction(new EventHandler<ActionEvent>() {
             @Override
-            public void handle(ActionEvent e) {
-                game.undo(f);    
-            }
+            public void handle(ActionEvent e) { game.undo(); }
         });
         statusText1 = new Text();
         statusText2 = new Text();
@@ -77,17 +72,9 @@ public class Connect4Frame extends Parent {
         VBox.setMargin(b0, new Insets(2, 2, 2, 2));
         VBox.setMargin(b1, new Insets(2, 2, 2, 2));
         grid.add(v, 1, 0);
-
         getChildren().add(grid);
-
-        timer = new Timeline(new KeyFrame(Duration.seconds(0.5), new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                computerMove();
-            }
-        }));
-        timer.setCycleCount(Timeline.INDEFINITE);
-        timer.pause();
+        game.registerBoardUpdateListener( (int player, boolean animated, boolean marker, int column, int row) -> this.placeDisc(player, animated, marker, column, row) );
+        game.registerStatusUpdateListener( (String s) -> statusText2.setText(s) );
     }
 
     private Shape makeGrid() {
@@ -124,45 +111,34 @@ public class Connect4Frame extends Parent {
     
     private void humanMove(int col) {
         if (!game.isOver()) {
-            int row = game.move(col, game.RED); 
-            if (row >= 0) {
-                timer.pause();
-                placeDisc(game.RED, false, col, row);  
+            if (game.move(col, game.RED)) {
+                computerMove();
             }
         }
     }
 
     private void computerMove() {
         if (!game.isOver() && game.getNextPlayer()==game.YELLOW) {
-            int col = game.calcBestMove(game.YELLOW);
-            int row = game.move(col, game.YELLOW);
-            if (row >= 0) {
-                placeDisc(game.YELLOW, false, col, row);
+            int col;
+            if ((col = game.calcBestMove(game.YELLOW)) >= 0 ) {
+              game.move(col, game.YELLOW);
             }
         }
     }
 
-    private void printGameStatus() {
-        statusText1.setText(game.getStatusText());
-        statusText2.setText("");
-        if (game.isOver()) {
-            game.markWinningLine(this,true);
-        }
-    }
 
-    public void placeDisc(int player, boolean marker, int column, int row) {  
-        Circle disc = new Circle(DISC_SIZE / (marker?4:2), player==game.EMPTY ? Color.WHITE : player==game.RED ? Color.RED : Color.YELLOW);
+    public void placeDisc(int player, boolean animated, boolean marked, int column, int row) {  
+        Circle disc = new Circle(DISC_SIZE / (marked?4:2), player==game.EMPTY ? Color.WHITE : player==game.RED ? Color.RED : Color.YELLOW);
         disc.setCenterX(DISC_SIZE / 2);
         disc.setCenterY(DISC_SIZE / 2);
         discRoot.getChildren().add(disc);
         disc.setTranslateX(column * (DISC_SIZE + 5) + DISC_SIZE / 4);
-        if (marker) {
+        if (marked || !animated) {
             disc.setTranslateY((game.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);            
         }
         else {
             TranslateTransition animation = new TranslateTransition(Duration.seconds(0.3), disc);
             animation.setToY((game.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);
-            animation.setOnFinished(e -> { printGameStatus(); timer.play(); });
             animation.play();
         }
     }

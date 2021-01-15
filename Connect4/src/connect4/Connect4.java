@@ -1,4 +1,5 @@
 package connect4;
+// The application
 
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -9,9 +10,8 @@ public class Connect4 extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         
-        final Connect4Game game = new Connect4Game(); // The game logic
-        final Connect4Frame frame = new Connect4Frame(game); // The game GUI element
-        
+        final Connect4Game game = new Connect4Game(); // The pure game logic
+        final Connect4Frame frame = new Connect4Frame(game); // The game GUI element for our scene
         stage.setScene(new Scene(frame)); 
         stage.show();
     }

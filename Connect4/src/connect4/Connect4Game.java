@@ -1,4 +1,5 @@
 package connect4;
+// The game logic
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,24 +8,32 @@ import java.util.function.BiConsumer;
 
 public class Connect4Game {
 
-    public final int COLS = 7;
-    public final int ROWS = 6;
-    
-    public final int RED = +1;
-    public final int YELLOW = -1;
-    public final int EMPTY = 0;
+    // Parameters and constants
+    public final int COLS   = 7;        // Board
+    public final int ROWS   = 6;
+    public final int EMPTY  = 0;
 
+    public final int RED    = +1;       // Player
+    public final int YELLOW = -1; 
+    
+    public final int RED_WIN    = +1000;  // Score
+    public final int YELLOW_WIN = -1000;
+
+    private final int[] colOrder = { 3, 4, 2, 1, 5, 0, 6 }; // Column priority (helps alpha/beta)
+
+    // The playboard
     private int[][] board;
-    private int[] colPieces;
-    private int totPieces;
-    private List<Line> lines;
-    private String statusText;
+    private int[] colPieces; // Pieces in a col
+    private int totPieces; // Overall pieces
+    private final List<Line> lines; // All line combinations
+
+    // The game status
     private boolean gameOver;
     private int nextPlayer;
     private int maxDepth;
-    private int[] colOrder = { 3, 4, 2, 1, 5, 0, 6 };
-    private Stack<Field> moveStack;
+    private Stack<Field> moveStack; // For undo
 
+    // Array field boxing class (help me java ?? is there a better way ?)
     private class Field {
         
         final int row, col;
@@ -37,18 +46,19 @@ public class Connect4Game {
         public int get() { return board[col][row]; }
     }
 
+    // Wining lines 
     private class Line {
 
         private final List<Field> fields;
         
-        Line(int col, int row, int colo, int rowo) {
+        Line(int col, int row, int colo, int rowo) { // Create a winning line starting at (col,rol) in direction (colo,rowo)
             fields = new ArrayList<Field>();
             for (int i = 0; i < 4; i++) {
                 fields.add(new Field(col + i * colo, row + i * rowo));
             }
         }
 
-        public int sum() { 
+        public int sum() { // Calculate partial score for a line
             int s = 0;
             for (Field f : fields) {
                 int sf = f.get();
@@ -59,14 +69,38 @@ public class Connect4Game {
         }
     }
 
-    
+    // Notify somebody (GUI) on board changes
+    BoardUpdateListener boardUpdateListener;
+    public interface BoardUpdateListener {
+        public void Update(int player, boolean animated, boolean marker, int column, int row);        
+    };     
+    public void registerBoardUpdateListener( BoardUpdateListener l ) {
+        boardUpdateListener = l;
+    }
+    private void boardUpdate(int player, boolean animated, boolean marker, int col, int row) {
+        if (boardUpdateListener!=null) boardUpdateListener.Update(player,animated,marker,col,row); 
+    }
+
+    // Notify somebody (GUI) on status changes
+    StatusUpdateListener statusUpdateListener;
+    public interface StatusUpdateListener {
+        public void PrintStatus(String s);        
+    };   
+    public void registerStatusUpdateListener( StatusUpdateListener l ) {
+        statusUpdateListener = l;
+    }
+    private void printStatus(String s) {
+        if (statusUpdateListener!=null) statusUpdateListener.PrintStatus(s);
+    }
+      
+    // Create a game
     Connect4Game() {
 
         // Create board
         board = new int[COLS][ROWS];
         colPieces = new int[COLS];
 
-        // Create all lines
+        // Create all winning line combinations once
         lines = new ArrayList<Line>();
         for (int r = 0; r < ROWS; r++) {
             for (int c = 0; c < COLS; c++) {
@@ -81,9 +115,10 @@ public class Connect4Game {
             }
         }
 
-        newGame();
+        newGame(); // Go
     }
 
+    // New game
     public void newGame() {
 
         totPieces = 0;
@@ -94,34 +129,33 @@ public class Connect4Game {
             }
         }
 
-        statusText = "";
         gameOver = false;
         nextPlayer = RED;
         setOptimalMaxDepth();
         moveStack = new Stack<Field>();
+        printStatus("New Game");
     }
 
+    // Check game is over
     public boolean isOver() {
         return gameOver;
     }
-
-    public String getStatusText() {
-        return statusText;
-    }
-
+    
+    // Get next player
     public int getNextPlayer() {
         return nextPlayer;
     }
 
-    public void markWinningLine(Connect4Frame gui, boolean mark) {
+    // Nicely mark the winners combination on GUI
+    public void markWinningLine(boolean mark) {
         for (Line l : lines) {
             int s = l.sum();
             if (s == -4 || s == +4) {
                 for (Field f : l.fields) {
                     if (mark) {
-                        gui.placeDisc(EMPTY, true, f.col, f.row);
+                        boardUpdate(EMPTY, false, true, f.col, f.row);
                     } else {
-                        gui.placeDisc(board[f.col][f.row], false, f.col, f.row);
+                        boardUpdate(board[f.col][f.row], false, false, f.col, f.row);
                     }
                 }
                 return;
@@ -130,41 +164,52 @@ public class Connect4Game {
 
     }
 
+    // Calculate best move for player p, start the minmax recursion
     public int calcBestMove(int p) {
         int c = minmax(p, 0, -100000, +100000);
         return c;
     }
 
-    public int move(int c, int p) {
+    // Do a move c for player p
+    public boolean move(int c, int p) {
 
         int r = colPieces[c];
         if ( r<ROWS && !gameOver && nextPlayer == p) {
             doMove(c, p);
+            boardUpdate(p, true, false, c, r);
             moveStack.push(new Field(c,r));
             int s = getScore(RED);
-            if (s <= -1000) {
-                statusText = "YELLOW wins!";
+            if (s <= YELLOW_WIN) {
+                printStatus("YELLOW wins!");
+                markWinningLine(true);
                 gameOver = true;
-            } else if (s >= +1000) {
-                statusText = "RED wins!";
+            } 
+            else if (s >= RED_WIN) {
+                printStatus("RED wins!");
+                markWinningLine(true);
                 gameOver = true;
-            } else if (totPieces >= ROWS * COLS) {
-                statusText = "Game over!";
+            } 
+            else if (totPieces >= ROWS * COLS) {
+                printStatus("Game over!");
                 gameOver = true;
             }
-            nextPlayer = -nextPlayer;
-            setOptimalMaxDepth();
-            return colPieces[c] - 1;
-        } else {
-            return -1;
+            else {
+              nextPlayer = -nextPlayer;
+              setOptimalMaxDepth();
+            }
+            return true;
+        } 
+        else {
+            return false;
         }
     }
 
-    public void undo(Connect4Frame gui) {
+    // Undo the last 2 moves
+    public void undo() {
 
         if (totPieces >= 2) {
             if (gameOver) {
-                markWinningLine(gui, false); // Remove winning line markers
+                markWinningLine(false); // Remove winning line markers
                 gameOver = false;
             }
             for (int i = 0; i < 2; i++) { // Undo player and computer move and place a grey disc
@@ -172,18 +217,19 @@ public class Connect4Game {
                 int r = f.row;
                 int c = f.col;
                 undoMove(c);
-                gui.placeDisc(EMPTY, false, c, r);
-                statusText = "";
+                boardUpdate(EMPTY, false, false, c, r);
+                printStatus("");
             }
         }
     }
 
+    // Minmax algo with alpha/beta pruning (thanks c't)
     private int minmax(int p, int depth, int alpha, int beta) {
 
         int s = getScore(p);
         if (depth >= maxDepth)
             return s;
-        if (totPieces >= ROWS * COLS || s == -1000 || s == +1000)
+        if (totPieces >= ROWS * COLS || s == RED_WIN || s == YELLOW_WIN)
             return s; // Game over
         int s_max = -100000;
         int c_max = -1;
@@ -207,27 +253,28 @@ public class Connect4Game {
             }
         }
         if (depth == 0) { // Return best move for actual board and player on level 0
-            if (s_max == +1000)
-                statusText = "Computer will win!";
-            if (s_max == -1000)
-                statusText = "Computer may loose!";
+            if (s_max == RED_WIN)
+                printStatus("Computer will win!");
+            if (s_max == YELLOW_WIN)
+                printStatus("Computer may loose!");
             return c_max;
         }
         return s_max; // Return score on other levels
     }
 
+    // Do a temporary move
     private void doMove(int c, int p) {
         board[c][colPieces[c]++] = p;
         totPieces++;
     }
 
-
+    // Undo a temporary move
     private void undoMove(int c) {
         board[c][--colPieces[c]] = 0;
         totPieces--;
     }
 
-
+    // Get the current board score, -1000 ... +1000 given for a winning combination, player1 = -player2 score
     private int getScore(int p) {        
         int s = 0;
         for (Line l : lines) {
@@ -238,6 +285,7 @@ public class Connect4Game {
         return p * s;
     }
 
+    // Optimizee the max depth when game advances 
     private void setOptimalMaxDepth() {
         if (ROWS * COLS - totPieces < 42 / 3) {
             maxDepth = 20;

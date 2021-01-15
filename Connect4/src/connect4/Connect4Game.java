@@ -16,8 +16,9 @@ public class Connect4Game {
     public final int RED    = +1;       // Player
     public final int YELLOW = -1; 
     
-    public final int RED_WIN    = +1000;  // Score
-    public final int YELLOW_WIN = -1000;
+    public final int WIN_SCORE = 1000;  // Score (Stellungsbewertung)
+    public final int RED_WIN       = (WIN_SCORE*RED);
+    public final int YELLOW_WIN    = (WIN_SCORE*YELLOW);
 
     private final int[] colOrder = { 3, 4, 2, 1, 5, 0, 6 }; // Column priority (helps alpha/beta)
 
@@ -50,21 +51,25 @@ public class Connect4Game {
     private class Line {
 
         private final List<Field> fields;
+        private final int scoreOffset;
         
         Line(int col, int row, int colo, int rowo) { // Create a winning line starting at (col,rol) in direction (colo,rowo)
+            scoreOffset = ROWS-row;
             fields = new ArrayList<Field>();
             for (int i = 0; i < 4; i++) {
                 fields.add(new Field(col + i * colo, row + i * rowo));
             }
         }
 
-        public int sum() { // Calculate partial score for a line
+        public int sum() { // Calculate score for a single line
             int s = 0;
             for (Field f : fields) {
                 int sf = f.get();
                 if (s * sf < 0) return 0;
                 s += sf;
             }
+            if (s==-4 || s==+4) return s*WIN_SCORE/4; 
+            if (s!=0) s = s*8+scoreOffset;
             return s;
         }
     }
@@ -94,8 +99,10 @@ public class Connect4Game {
     }
       
     // Create a game
-    Connect4Game() {
+    Connect4Game( int maxDepth) {
 
+        this.maxDepth = maxDepth;
+        
         // Create board
         board = new int[COLS][ROWS];
         colPieces = new int[COLS];
@@ -131,7 +138,6 @@ public class Connect4Game {
 
         gameOver = false;
         nextPlayer = RED;
-        setOptimalMaxDepth();
         moveStack = new Stack<Field>();
         printStatus("New Game");
     }
@@ -150,7 +156,7 @@ public class Connect4Game {
     public void markWinningLine(boolean mark) {
         for (Line l : lines) {
             int s = l.sum();
-            if (s == -4 || s == +4) {
+            if (s == YELLOW_WIN || s == RED_WIN) {
                 for (Field f : l.fields) {
                     if (mark) {
                         boardUpdate(EMPTY, false, true, f.col, f.row);
@@ -166,7 +172,7 @@ public class Connect4Game {
 
     // Calculate best move for player p, start the minmax recursion
     public int calcBestMove(int p) {
-        int c = minmax(p, 0, -100000, +100000);
+        int c = minmax(p, 0, -1000000, +1000000);
         return c;
     }
 
@@ -179,12 +185,12 @@ public class Connect4Game {
             boardUpdate(p, true, false, c, r);
             moveStack.push(new Field(c,r));
             int s = getScore(RED);
-            if (s <= YELLOW_WIN) {
+            if (s == YELLOW_WIN) {
                 printStatus("YELLOW wins!");
                 markWinningLine(true);
                 gameOver = true;
             } 
-            else if (s >= RED_WIN) {
+            else if (s == RED_WIN) {
                 printStatus("RED wins!");
                 markWinningLine(true);
                 gameOver = true;
@@ -193,10 +199,8 @@ public class Connect4Game {
                 printStatus("Game over!");
                 gameOver = true;
             }
-            else {
-              nextPlayer = -nextPlayer;
-              setOptimalMaxDepth();
-            }
+            nextPlayer = -nextPlayer;
+            setOptimalMaxDepth();
             return true;
         } 
         else {
@@ -218,8 +222,8 @@ public class Connect4Game {
                 int c = f.col;
                 undoMove(c);
                 boardUpdate(EMPTY, false, false, c, r);
-                printStatus("");
             }
+            printStatus("");
         }
     }
 
@@ -231,7 +235,7 @@ public class Connect4Game {
             return s;
         if (totPieces >= ROWS * COLS || s == RED_WIN || s == YELLOW_WIN)
             return s; // Game over
-        int s_max = -100000;
+        int s_max = -1000000;
         int c_max = -1;
         for (int i = 0; i < COLS; i++) {
             int c = colOrder[i];
@@ -279,27 +283,19 @@ public class Connect4Game {
         int s = 0;
         for (Line l : lines) {
             int s1 = l.sum();
-            if (s1 == -4 || s1 == +4) return p * s1 * 250;
+            if (s1==RED_WIN || s1==YELLOW_WIN) return p * s1;
             s += s1;
         }
         return p * s;
     }
 
-    // Optimizee the max depth when game advances 
+    // Increase max depth when game advances 
     private void setOptimalMaxDepth() {
         if (ROWS * COLS - totPieces < 42 / 3) {
             maxDepth = 20;
         } else if (ROWS * COLS - totPieces < 42 / 2) {
             maxDepth = 15;
-        } else {
-            maxDepth = 10;
-        }
-        int n = 0;
-        for (int i = 0; i < COLS; i++) {
-            if (colPieces[i] == ROWS)
-                n++;
-        }
-        maxDepth += n / 2;
+        } 
     }
 
 }

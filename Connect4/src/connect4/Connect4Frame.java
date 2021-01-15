@@ -1,6 +1,8 @@
 package connect4;
 // the javafx gui
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -73,6 +75,7 @@ public class Connect4Frame extends Parent {
         VBox.setMargin(b1, new Insets(2, 2, 2, 2));
         grid.add(v, 1, 0);
         getChildren().add(grid);
+        
         game.registerBoardUpdateListener( (int player, boolean animated, boolean marker, int column, int row) -> this.placeDisc(player, animated, marker, column, row) );
         game.registerStatusUpdateListener( (String s) -> statusText2.setText(s) );
     }
@@ -112,7 +115,9 @@ public class Connect4Frame extends Parent {
     private void humanMove(int col) {
         if (!game.isOver()) {
             if (game.move(col, game.RED)) {
-                computerMove();
+                // Computer move in 1 second to complete human move animation
+                Timeline timer = new Timeline(new KeyFrame(Duration.seconds(1), (e) -> computerMove() ));
+                timer.play();
             }
         }
     }
@@ -136,8 +141,8 @@ public class Connect4Frame extends Parent {
         if (marked || !animated) {
             disc.setTranslateY((game.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);            
         }
-        else {
-            TranslateTransition animation = new TranslateTransition(Duration.seconds(0.3), disc);
+        else { // Animate drop
+            TranslateTransition animation = new TranslateTransition(Duration.seconds(0.6), disc);
             animation.setToY((game.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);
             animation.play();
         }

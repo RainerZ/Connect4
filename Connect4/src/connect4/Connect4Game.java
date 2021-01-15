@@ -21,6 +21,7 @@ public class Connect4Game {
     public final int YELLOW_WIN    = (WIN_SCORE*YELLOW);
 
     private final int[] colOrder = { 3, 4, 2, 1, 5, 0, 6 }; // Column priority (helps alpha/beta)
+    public final int MAX_DEPTH = 10; 
 
     // The playboard
     private int[][] board;
@@ -99,9 +100,7 @@ public class Connect4Game {
     }
       
     // Create a game
-    Connect4Game( int maxDepth) {
-
-        this.maxDepth = maxDepth;
+    Connect4Game() {
         
         // Create board
         board = new int[COLS][ROWS];
@@ -139,6 +138,7 @@ public class Connect4Game {
         gameOver = false;
         nextPlayer = RED;
         moveStack = new Stack<Field>();
+        setOptimalMaxDepth();
         printStatus("New Game");
     }
 
@@ -292,10 +292,12 @@ public class Connect4Game {
     // Increase max depth when game advances 
     private void setOptimalMaxDepth() {
         if (ROWS * COLS - totPieces < 42 / 3) {
-            maxDepth = 20;
+            maxDepth = MAX_DEPTH+10;
         } else if (ROWS * COLS - totPieces < 42 / 2) {
-            maxDepth = 15;
-        } 
+            maxDepth = MAX_DEPTH+5;
+        } else {
+            maxDepth = MAX_DEPTH;
+        }
     }
 
 }

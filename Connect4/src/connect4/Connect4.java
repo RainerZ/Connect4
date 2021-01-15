@@ -13,40 +13,32 @@ import javafx.util.Duration;
 
 public class Connect4 extends Application {
 
-    Connect4Game game;
+    private final boolean AUTOPLAY = true;
     
-    /*
-    Connect4Game game2;
-    public void autoMove() {
-
-        int c;  
-        if (game.isOver()) return;
-        int p = game.getNextPlayer();
-        c = (p==game.RED) ? game2.calcBestMove(p): game.calcBestMove(p);    
-        game.move(c, p);
-        game2.move(c, p);
-    }
-    */
+    Connect4Game game;
     
     @Override
     public void start(Stage stage) throws Exception {
         
-        game = new Connect4Game(10); // The pure game logic
+        game = new Connect4Game(); // The pure game logic
         final Connect4Frame frame = new Connect4Frame(game); // The game GUI element for our scene
         stage.setScene(new Scene(frame)); 
         stage.show();
         
-        /*
-        game2 = new Connect4Game(10); // The pure game logic
-        Timeline timer = new Timeline(new KeyFrame(Duration.seconds(2), new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                autoMove();
-            }
-        }));
-        timer.setCycleCount(Timeline.INDEFINITE);
-        timer.play();
-        */
+        if (AUTOPLAY) {
+            Connect4Game game2 = new Connect4Game(); // The pure game logic
+            Timeline timer = new Timeline(new KeyFrame(Duration.seconds(2), new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    if (game.isOver()) return;
+                    int p = game.getNextPlayer();
+                    int c = game.calcBestMove(p);
+                    game.move(c, p);
+                }
+            }));
+            timer.setCycleCount(Timeline.INDEFINITE);
+            timer.play();
+        }
         
     }
 

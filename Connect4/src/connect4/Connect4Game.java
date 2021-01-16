@@ -1,15 +1,6 @@
 package connect4;
 // The game logic
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
-
-import connect4.Connect4Board.BoardUpdateListener;
-import connect4.Connect4Board.Piece;
-import connect4.Connect4Board.StatusUpdateListener;
-
-
 final public class Connect4Game {
 
     // The players

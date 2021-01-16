@@ -1,6 +1,6 @@
 package connect4;
-
 // The Connect4 player
+
 class Connect4Player {
 
     protected final Connect4Board board;

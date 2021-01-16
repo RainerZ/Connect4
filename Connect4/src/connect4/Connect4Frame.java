@@ -1,5 +1,5 @@
 package connect4;
-// the javafx gui
+// The javafx gui
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;

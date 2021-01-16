@@ -1,5 +1,5 @@
 package connect4;
-
+// A player with minmax ai algorithm
 
 
 public class Connect4AiPlayer extends Connect4Player {

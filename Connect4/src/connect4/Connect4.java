@@ -1,45 +1,27 @@
 package connect4;
 // The application
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.util.Duration;
 
 public class Connect4 extends Application {
-
-    private final boolean AUTOPLAY = false;
-    
-    Connect4Game game;
     
     @Override
     public void start(Stage stage) throws Exception {
         
-        game = new Connect4Game(); // The pure game logic
-        final Connect4Frame frame = new Connect4Frame(game); // The game GUI element for our scene
+        // Create game logic
+        Connect4Game game = new Connect4Game(); 
+        
+        // Create GUI
+        final Connect4Frame frame = new Connect4Frame(game); 
         stage.setScene(new Scene(frame)); 
-        stage.show();
-        
-        if (AUTOPLAY) {
-            Connect4Game game2 = new Connect4Game(); // The pure game logic
-            Timeline timer = new Timeline(new KeyFrame(Duration.seconds(2), 
-                    
-                    
-                    new EventHandler<ActionEvent>() {
-                @Override
-                public void handle(ActionEvent event) {
-                    if (!game.isOver()) game.getNextPlayer().calcMove();
-                }
-            }));
-            timer.setCycleCount(Timeline.INDEFINITE);
-            timer.play();
-        }
-        
+        stage.show();        
     }
 
     public static void main(String[] args) {

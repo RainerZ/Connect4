@@ -76,14 +76,14 @@ public class Connect4Frame extends Parent {
         grid.add(v, 1, 0);
         getChildren().add(grid);
         
-        game.registerBoardUpdateListener( (Connect4Game.Connect4Player player, boolean animated, boolean marker, int column, int row) -> this.placeDisc(player, animated, marker, column, row) );
+        game.registerBoardUpdateListener( (Connect4Board.Piece p, boolean animated, boolean marker, int column, int row) -> this.placeDisc(p, animated, marker, column, row) );
         game.registerStatusUpdateListener( (String s) -> statusText2.setText(s) );
     }
 
     private Shape makeGrid() {
-        Shape shape = new Rectangle((game.COLS + 1) * DISC_SIZE, (game.ROWS + 1) * DISC_SIZE);
-        for (int y = 0; y < game.ROWS; y++) {
-            for (int x = 0; x < game.COLS; x++) {
+        Shape shape = new Rectangle((Connect4Board.COLS + 1) * DISC_SIZE, (Connect4Board.ROWS + 1) * DISC_SIZE);
+        for (int y = 0; y < Connect4Board.ROWS; y++) {
+            for (int x = 0; x < Connect4Board.COLS; x++) {
                 Circle circle = new Circle(DISC_SIZE / 2);
                 circle.setCenterX(DISC_SIZE / 2);
                 circle.setCenterY(DISC_SIZE / 2);
@@ -98,8 +98,8 @@ public class Connect4Frame extends Parent {
 
     private List<Rectangle> makeColumns() {
         List<Rectangle> list = new ArrayList<>();
-        for (int x = 0; x < game.COLS; x++) {
-            Rectangle rect = new Rectangle(DISC_SIZE, (game.ROWS + 1) * DISC_SIZE);
+        for (int x = 0; x < Connect4Board.COLS; x++) {
+            Rectangle rect = new Rectangle(DISC_SIZE, (Connect4Board.ROWS + 1) * DISC_SIZE);
             rect.setTranslateX(x * (DISC_SIZE + 5) + DISC_SIZE / 4);
             rect.setFill(Color.TRANSPARENT);
             rect.setOnMouseEntered(e -> rect.setFill(Color.rgb(200, 200, 200, 0.2)));
@@ -113,8 +113,9 @@ public class Connect4Frame extends Parent {
 
     
     private void humanMove(int col) {
-        if (!game.isOver() && !game.getNextPlayer().isComputer()) {
-            if (game.getNextPlayer().move(col)) {
+        Connect4Player player = game.getNextPlayer(); 
+        if (!game.isOver() && !player.isComputer()) {
+            if (player.doMove(col)) {
                 // Computer move in 1 second to complete human move animation
                 Timeline timer = new Timeline(new KeyFrame(Duration.seconds(1), (e) -> computerMove() ));
                 timer.play();
@@ -123,25 +124,26 @@ public class Connect4Frame extends Parent {
     }
 
     private void computerMove() {
-        if (!game.isOver() && game.getNextPlayer().isComputer()) {
-            game.getNextPlayer().calcMove();
+        Connect4Player player = game.getNextPlayer(); 
+        if (!game.isOver() && player.isComputer()) {
+            player.doMove();
         }
         
     }
 
 
-    public void placeDisc(Connect4Game.Connect4Player player, boolean animated, boolean marked, int column, int row) {  
-        Circle disc = new Circle(DISC_SIZE / (marked?4:2), player==null ? Color.WHITE : player.getColor()==game.RED ? Color.RED : Color.YELLOW);
+    private void placeDisc(Connect4Board.Piece p, boolean animated, boolean marked, int column, int row) {  
+        Circle disc = new Circle(DISC_SIZE / (marked?4:2), p.getColor());
         disc.setCenterX(DISC_SIZE / 2);
         disc.setCenterY(DISC_SIZE / 2);
         discRoot.getChildren().add(disc);
         disc.setTranslateX(column * (DISC_SIZE + 5) + DISC_SIZE / 4);
         if (marked || !animated) {
-            disc.setTranslateY((game.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);            
+            disc.setTranslateY((Connect4Board.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);            
         }
         else { // Animate drop
             TranslateTransition animation = new TranslateTransition(Duration.seconds(0.6), disc);
-            animation.setToY((game.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);
+            animation.setToY((Connect4Board.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);
             animation.play();
         }
     }

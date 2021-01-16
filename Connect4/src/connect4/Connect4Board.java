@@ -225,7 +225,7 @@ class Connect4Board {
                 markWinningLine(false); // Remove winning line markers
                 gameOver = false;
             }
-            for (int i = 0; i < 2; i++) { // Undo player and computer move and place a grey disc
+            for (int i = 0; i < 2; i++) { // Undo one round
                 Field f = moveStack.pop();
                 int r = f.row;
                 int c = f.col;

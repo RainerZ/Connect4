@@ -13,7 +13,7 @@ import javafx.util.Duration;
 
 public class Connect4 extends Application {
 
-    private final boolean AUTOPLAY = true;
+    private final boolean AUTOPLAY = false;
     
     Connect4Game game;
     
@@ -27,13 +27,13 @@ public class Connect4 extends Application {
         
         if (AUTOPLAY) {
             Connect4Game game2 = new Connect4Game(); // The pure game logic
-            Timeline timer = new Timeline(new KeyFrame(Duration.seconds(2), new EventHandler<ActionEvent>() {
+            Timeline timer = new Timeline(new KeyFrame(Duration.seconds(2), 
+                    
+                    
+                    new EventHandler<ActionEvent>() {
                 @Override
                 public void handle(ActionEvent event) {
-                    if (game.isOver()) return;
-                    int p = game.getNextPlayer();
-                    int c = game.calcBestMove(p);
-                    game.move(c, p);
+                    if (!game.isOver()) game.getNextPlayer().calcMove();
                 }
             }));
             timer.setCycleCount(Timeline.INDEFINITE);

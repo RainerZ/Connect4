@@ -76,7 +76,7 @@ public class Connect4Frame extends Parent {
         grid.add(v, 1, 0);
         getChildren().add(grid);
         
-        game.registerBoardUpdateListener( (int player, boolean animated, boolean marker, int column, int row) -> this.placeDisc(player, animated, marker, column, row) );
+        game.registerBoardUpdateListener( (Connect4Game.Connect4Player player, boolean animated, boolean marker, int column, int row) -> this.placeDisc(player, animated, marker, column, row) );
         game.registerStatusUpdateListener( (String s) -> statusText2.setText(s) );
     }
 
@@ -113,8 +113,8 @@ public class Connect4Frame extends Parent {
 
     
     private void humanMove(int col) {
-        if (!game.isOver()) {
-            if (game.move(col, game.RED)) {
+        if (!game.isOver() && !game.getNextPlayer().isComputer()) {
+            if (game.getNextPlayer().move(col)) {
                 // Computer move in 1 second to complete human move animation
                 Timeline timer = new Timeline(new KeyFrame(Duration.seconds(1), (e) -> computerMove() ));
                 timer.play();
@@ -123,17 +123,15 @@ public class Connect4Frame extends Parent {
     }
 
     private void computerMove() {
-        if (!game.isOver() && game.getNextPlayer()==game.YELLOW) {
-            int col;
-            if ((col = game.calcBestMove(game.YELLOW)) >= 0 ) {
-              game.move(col, game.YELLOW);
-            }
+        if (!game.isOver() && game.getNextPlayer().isComputer()) {
+            game.getNextPlayer().calcMove();
         }
+        
     }
 
 
-    public void placeDisc(int player, boolean animated, boolean marked, int column, int row) {  
-        Circle disc = new Circle(DISC_SIZE / (marked?4:2), player==game.EMPTY ? Color.WHITE : player==game.RED ? Color.RED : Color.YELLOW);
+    public void placeDisc(Connect4Game.Connect4Player player, boolean animated, boolean marked, int column, int row) {  
+        Circle disc = new Circle(DISC_SIZE / (marked?4:2), player==null ? Color.WHITE : player.getColor()==game.RED ? Color.RED : Color.YELLOW);
         disc.setCenterX(DISC_SIZE / 2);
         disc.setCenterY(DISC_SIZE / 2);
         discRoot.getChildren().add(disc);

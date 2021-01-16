@@ -6,22 +6,25 @@ import java.util.List;
 import java.util.Stack;
 import java.util.function.BiConsumer;
 
-public class Connect4Game {
+final public class Connect4Game {
 
     // Parameters and constants
     public final int COLS   = 7;        // Board
     public final int ROWS   = 6;
-    public final int EMPTY  = 0;
-
-    public final int RED    = +1;       // Player
-    public final int YELLOW = -1; 
     
-    public final int WIN_SCORE = 1000;  // Score (Stellungsbewertung)
-    public final int RED_WIN       = (WIN_SCORE*RED);
-    public final int YELLOW_WIN    = (WIN_SCORE*YELLOW);
+    private final int PLAYER1 = +1;   
+    private final int PLAYER2 = -1;  
+    private final int EMPTY  = 0;
+    
+    public final int RED    = +1;       // Human player  color
+    public final int YELLOW = -1;       // Computer player  color
+    
+    private final int WIN_SCORE = 1000;  // Score (Stellungsbewertung)
+    private final int RED_WIN       = (WIN_SCORE*RED);
+    private final int YELLOW_WIN    = (WIN_SCORE*YELLOW);
 
     private final int[] colOrder = { 3, 4, 2, 1, 5, 0, 6 }; // Column priority (helps alpha/beta)
-    public final int MAX_DEPTH = 10; 
+    private final int MAX_DEPTH = 10; 
 
     // The playboard
     private int[][] board;
@@ -31,9 +34,13 @@ public class Connect4Game {
 
     // The game status
     private boolean gameOver;
-    private int nextPlayer;
     private int maxDepth;
     private Stack<Field> moveStack; // For undo
+
+    // The players
+    private Connect4Player player1;
+    private Connect4Player player2;
+    private Connect4Player nextPlayer;
 
     // Array field boxing class (help me java ?? is there a better way ?)
     private class Field {
@@ -78,12 +85,12 @@ public class Connect4Game {
     // Notify somebody (GUI) on board changes
     BoardUpdateListener boardUpdateListener;
     public interface BoardUpdateListener {
-        public void Update(int player, boolean animated, boolean marker, int column, int row);        
+        public void Update(Connect4Player player, boolean animated, boolean marker, int column, int row);        
     };     
     public void registerBoardUpdateListener( BoardUpdateListener l ) {
         boardUpdateListener = l;
     }
-    private void boardUpdate(int player, boolean animated, boolean marker, int col, int row) {
+    private void boardUpdate(Connect4Player player, boolean animated, boolean marker, int col, int row) {
         if (boardUpdateListener!=null) boardUpdateListener.Update(player,animated,marker,col,row); 
     }
 
@@ -121,6 +128,7 @@ public class Connect4Game {
             }
         }
 
+        createPlayers();
         newGame(); // Go
     }
 
@@ -136,22 +144,34 @@ public class Connect4Game {
         }
 
         gameOver = false;
-        nextPlayer = RED;
         moveStack = new Stack<Field>();
+        nextPlayer = player1; // Human starts
+
         setOptimalMaxDepth();
         printStatus("New Game");
     }
 
+    // Create the 2 players
+    private void createPlayers() {
+      player1 = new Connect4Player(PLAYER1); // Human
+      player2 = new Connect4Player(PLAYER2); // Computer
+    }
+
+    // Get player
+    public Connect4Player getPlayer(int p) {
+        return p == PLAYER1 ? player1 : player2;
+    }
+
+    // Get next player
+    public Connect4Player getNextPlayer() {
+        return nextPlayer;
+    }
+            
     // Check game is over
     public boolean isOver() {
         return gameOver;
     }
     
-    // Get next player
-    public int getNextPlayer() {
-        return nextPlayer;
-    }
-
     // Nicely mark the winners combination on GUI
     public void markWinningLine(boolean mark) {
         for (Line l : lines) {
@@ -159,9 +179,9 @@ public class Connect4Game {
             if (s == YELLOW_WIN || s == RED_WIN) {
                 for (Field f : l.fields) {
                     if (mark) {
-                        boardUpdate(EMPTY, false, true, f.col, f.row);
+                        boardUpdate(null, false, true, f.col, f.row);
                     } else {
-                        boardUpdate(board[f.col][f.row], false, false, f.col, f.row);
+                        boardUpdate(getPlayer(board[f.col][f.row]), false, false, f.col, f.row);
                     }
                 }
                 return;
@@ -170,43 +190,60 @@ public class Connect4Game {
 
     }
 
-    // Calculate best move for player p, start the minmax recursion
-    public int calcBestMove(int p) {
-        int c = minmax(p, 0, -1000000, +1000000);
-        return c;
+    
+    
+    
+public class Connect4Player {
+
+    private int p;
+    
+    Connect4Player( int p ) {
+        this.p = p;
     }
-
-    // Do a move c for player p
-    public boolean move(int c, int p) {
-
-        int r = colPieces[c];
-        if ( r<ROWS && !gameOver && nextPlayer == p) {
-            doMove(c, p);
-            boardUpdate(p, true, false, c, r);
-            moveStack.push(new Field(c,r));
-            int s = getScore(RED);
-            if (s == YELLOW_WIN) {
-                printStatus("YELLOW wins!");
-                markWinningLine(true);
-                gameOver = true;
+    
+    public boolean isComputer() { return p==PLAYER2; }
+    public int getColor() { return p; }
+    
+    public boolean calcMove() {
+        return move(calcBestMove(p));
+    }
+    
+    public boolean move( int c ) {
+    
+            int r = colPieces[c];
+            if ( r<ROWS && !gameOver) {
+                doMove(c, p);
+                boardUpdate(this, true, false, c, r);
+                moveStack.push(new Field(c,r));
+                int s = getScore(RED);
+                if (s == +WIN_SCORE) {
+                    printStatus("RED wins!");
+                    markWinningLine(true);
+                    gameOver = true;
+                } 
+                else if (s == -WIN_SCORE) {
+                    printStatus("YELLOW wins!");
+                    markWinningLine(true);
+                    gameOver = true;
+                } 
+                else if (totPieces >= ROWS * COLS) {
+                    printStatus("Game over!");
+                    gameOver = true;
+                }
+                
+                nextPlayer = (this==player1)?player2:player2;
+                
+                setOptimalMaxDepth();
+                return true;
             } 
-            else if (s == RED_WIN) {
-                printStatus("RED wins!");
-                markWinningLine(true);
-                gameOver = true;
-            } 
-            else if (totPieces >= ROWS * COLS) {
-                printStatus("Game over!");
-                gameOver = true;
+            else {
+                return false;
             }
-            nextPlayer = -nextPlayer;
-            setOptimalMaxDepth();
-            return true;
-        } 
-        else {
-            return false;
-        }
     }
+    
+
+}
+
 
     // Undo the last 2 moves
     public void undo() {
@@ -221,10 +258,16 @@ public class Connect4Game {
                 int r = f.row;
                 int c = f.col;
                 undoMove(c);
-                boardUpdate(EMPTY, false, false, c, r);
+                boardUpdate(null, false, false, c, r);
             }
             printStatus("");
         }
+    }
+
+    // Calculate best move for player p, start the minmax recursion
+    private int calcBestMove(int p) {
+        int c = minmax(p, 0, -1000000, +1000000);
+        return c;
     }
 
     // Minmax algo with alpha/beta pruning (thanks c't)

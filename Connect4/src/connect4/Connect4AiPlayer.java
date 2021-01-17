@@ -11,6 +11,7 @@ public class Connect4AiPlayer extends Connect4Player {
     private int maxDepth; // max search depth
     private final int initialMaxDepth;
     private final int pieceValue;
+
     
     Connect4AiPlayer(Connect4Board board, Connect4Board.Piece p, String name, int maxDepth) {
         super(board,p,name);

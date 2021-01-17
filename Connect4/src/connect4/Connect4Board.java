@@ -58,7 +58,7 @@ class Connect4Board {
     // Field (field array element boxing class)
     public class Field {
 
-        final int row, col;
+        private final int row, col;
 
         Field(int col, int row) {
             this.row = row;

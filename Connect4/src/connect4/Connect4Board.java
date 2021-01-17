@@ -46,17 +46,17 @@ class Connect4Board {
 
     
     // Board info
-    public int[][] board; // Piece field values -1,0,+1
-    public int[] colPieces; // Number of pieces in a column
-    public int totPieces; // Overall number pieces on the board
-    public final List<Line> lines; // Array list of all possible line combinations
+    protected int[][] board; // Piece field values -1,0,+1
+    protected int[] colPieces; // Number of pieces in a column
+    protected int totPieces; // Overall number pieces on the board
+    protected final List<Line> lines; // Array list of all possible line combinations
 
     // Status
     private boolean gameOver;
     private Stack<Field> moveStack; // Move stack,for undo
 
     // Field (field array element boxing class)
-    public class Field {
+    protected class Field {
 
         private final int row, col;
 
@@ -75,7 +75,7 @@ class Connect4Board {
     }
 
     // Line (a winning combination of 4 fields) 
-    public class Line {
+    protected class Line {
 
         private final List<Field> fields;
         
@@ -100,13 +100,13 @@ class Connect4Board {
     // Notify somebody (GUI) on board changes
     private BoardUpdateListener boardUpdateListener;
     public interface BoardUpdateListener {
-        public void Update(Piece p, boolean animated, boolean marker, int column, int row);        
+        public void Update(Piece piece, boolean isNew, boolean marker, int column, int row);        
     };     
     public void registerBoardUpdateListener( BoardUpdateListener l ) {
         boardUpdateListener = l;
     }
-    public void boardUpdate(Piece p, boolean animated, boolean marker, int col, int row) {
-        if (boardUpdateListener!=null) boardUpdateListener.Update(p,animated,marker,col,row); 
+    protected void boardUpdate(Piece piece, boolean isNew, boolean marker, int col, int row) {
+        if (boardUpdateListener!=null) boardUpdateListener.Update(piece,isNew,marker,col,row); 
     }
 
     // Notify somebody (GUI) on status changes
@@ -117,7 +117,7 @@ class Connect4Board {
     public void registerStatusUpdateListener( StatusUpdateListener l ) {
         statusUpdateListener = l;
     }
-    public void statusUpdate(String s) {
+    protected void statusUpdate(String s) {
         if (statusUpdateListener!=null) statusUpdateListener.PrintStatus(s);
     }
       
@@ -191,15 +191,15 @@ class Connect4Board {
     }
 
     // Do a move, check and update game status, push to undo stack
-    public boolean move(Piece p, int c) {
+    public boolean move(Piece piece, int col) {
 
-        System.out.println("board.move("+p.name()+"," + c + ")");
+        System.out.println("board.move("+piece.name()+"," + col + ")");
 
-        int r = colPieces[c];
+        int r = colPieces[col];
         if (r < ROWS && !gameOver) {
-            put(c, p.getFieldValue());
-            boardUpdate(p, true, false, c, r);
-            moveStack.push(new Field(c, r));
+            putPiece(col, piece);
+            boardUpdate(piece, true, false, col, r);
+            moveStack.push(new Field(col, r));
             Line l = getWinningLine();
             if (l!=null) {
                 statusUpdate(l.fields.get(0).getPiece() + " wins!");
@@ -229,24 +229,33 @@ class Connect4Board {
                 Field f = moveStack.pop();
                 int r = f.row;
                 int c = f.col;
-                remove(c);
+                removePiece(c);
                 boardUpdate(Piece.EMPTY, false, false, c, r);
             }
             statusUpdate("");
         }
     }
 
+    // Get a piece
+    public Piece getPiece(int col, int row ) {
+        return Piece.ofFieldValue(board[col][row]);
+    }
 
     // Put a piece
-    public void put(int c, int fieldValue) {
-        board[c][colPieces[c]++] = fieldValue;
+    private void putPiece(int col, Piece piece) {
+        board[col][colPieces[col]++] = piece.fieldValue;
         totPieces++;
     }
 
     // Remove a piece
-    public void remove(int c) {
-        board[c][--colPieces[c]] = 0;
+    private void removePiece(int col) {
+        board[col][--colPieces[col]] = 0;
         totPieces--;
+    }
+
+
+    // Remove a piece (Direct board access - high performance operation for AI players)
+    private void remove(int c) {
     }
 
 }

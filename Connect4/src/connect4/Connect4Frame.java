@@ -126,7 +126,7 @@ public class Connect4Frame extends Parent {
     private void computerMove() {
         Connect4Player player = game.getNextPlayer(); 
         if (!game.isOver() && player.isComputer()) {
-            player.doMove();
+            player.calcMove();
         }
         
     }

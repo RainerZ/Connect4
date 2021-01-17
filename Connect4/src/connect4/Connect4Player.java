@@ -29,7 +29,7 @@ class Connect4Player {
         return board.move(piece,c);
     }
 
-    public boolean doMove() {
+    public boolean calcMove() {
         return false;
     }
 

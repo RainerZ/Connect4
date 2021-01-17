@@ -20,7 +20,7 @@ final public class Connect4Game {
         
         // Create players
         player1 = new Connect4Player(board, Connect4Board.Piece.RED, "Human (Red)");
-        player2 = new Connect4AiPlayer(board, Connect4Board.Piece.YELLOW, "Computer (Yellow)",10);            
+        player2 = new Connect4AiPlayer(board, Connect4Board.Piece.YELLOW, "Computer (Yellow)",11);            
 
         newGame(); // Go
     }

@@ -12,8 +12,7 @@ public class Connect4AiPlayer extends Connect4Player {
     private final int initialMaxDepth;
     private final int pieceValue;
 
-    
-    Connect4AiPlayer(Connect4Board board, Connect4Board.Piece p, String name, int maxDepth) {
+   Connect4AiPlayer(Connect4Board board, Connect4Board.Piece p, String name, int maxDepth) {
         super(board,p,name);
         this.initialMaxDepth = this.maxDepth = maxDepth;
         pieceValue = piece.getFieldValue();
@@ -25,7 +24,7 @@ public class Connect4AiPlayer extends Connect4Player {
     }
 
     @Override
-    public boolean doMove() {
+    public boolean calcMove() {
         System.out.println(name+" is thinking (depth="+maxDepth+") ...");
         if (board.move(piece, minmax(pieceValue, 0, -1000000, +1000000))) {
             setOptimalMaxDepth();
@@ -38,30 +37,33 @@ public class Connect4AiPlayer extends Connect4Player {
     private int minmax(int p, int depth, int alpha, int beta) {
 
         int s = getScore(p);
-        if (depth >= maxDepth) return s;
-        if (board.totPieces >= Connect4Board.ROWS * Connect4Board.COLS || s == +WIN_SCORE || s == -WIN_SCORE)
-            return s; // Game over
+        if (depth >= maxDepth ||
+            board.totPieces >= Connect4Board.ROWS * Connect4Board.COLS || 
+            s == +WIN_SCORE || s == -WIN_SCORE) return s; // depth or game over
+   
         int s_max = -1000000;
         int c_max = -1;
         for (int i = 0; i < Connect4Board.COLS; i++) {
             int c = colOrder[i];
             if (board.colPieces[c] < Connect4Board.ROWS) {
-                board.put(c, p);
+
+                board.board[c][board.colPieces[c]++] = p; // Put
+                board.totPieces++;
                 s = -minmax(-p, depth + 1, -beta, -alpha);
+                board.board[c][--board.colPieces[c]] = 0; // Remove
+                board.totPieces--;
+                
                 if (s > s_max) {
                     s_max = s;
                     c_max = c;
                 }
                 if (s > alpha) {
                     alpha = s;
-                    if (alpha > beta && depth > 0) {
-                        board.remove(c);
-                        break;
-                    }
+                    if (alpha > beta && depth > 0) break;
                 }
-                board.remove(c);
             }
         }
+        
         if (depth == 0) { // Return best move for actual board and player on level 0
             if (s_max == +WIN_SCORE) {
                 board.statusUpdate("I will win!");
@@ -73,7 +75,9 @@ public class Connect4AiPlayer extends Connect4Player {
             }
             return c_max;
         }
-        return s_max; // Return score on other levels
+        else {
+          return s_max; // Return score on other levels
+        }
     }
 
     // Get the current board score, -1000 ... +1000 given for a winning combination,
@@ -90,7 +94,7 @@ public class Connect4AiPlayer extends Connect4Player {
         return p * s;
     }
 
-    // Increase max depth when game advances
+     // Increase max depth when game advances
     private void setOptimalMaxDepth() {
         if (Connect4Board.ROWS * Connect4Board.COLS - board.totPieces < 42 / 3) {
             maxDepth = initialMaxDepth + 10;

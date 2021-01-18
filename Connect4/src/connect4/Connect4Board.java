@@ -14,6 +14,8 @@ class Connect4Board {
     public final static int COLS   = 7;        // Board
     public final static int ROWS   = 6;
     
+    public final int WIN_SCORE  = 1000;  // Score (Stellungsbewertung)
+
     // The piece
     public static enum Piece {
         
@@ -46,17 +48,17 @@ class Connect4Board {
 
     
     // Board info
-    protected int[][] board; // Piece field values -1,0,+1
-    protected int[] colPieces; // Number of pieces in a column
-    protected int totPieces; // Overall number pieces on the board
-    protected final List<Line> lines; // Array list of all possible line combinations
+    private int[][] board; // Piece field values -1,0,+1
+    private int[] colPieces; // Number of pieces in a column
+    private int totPieces; // Overall number pieces on the board
+    private final List<Line> lines; // Array list of all possible line combinations
 
     // Status
     private boolean gameOver;
     private Stack<Field> moveStack; // Move stack,for undo
 
     // Field (field array element boxing class)
-    protected class Field {
+    private class Field {
 
         private final int row, col;
 
@@ -75,7 +77,7 @@ class Connect4Board {
     }
 
     // Line (a winning combination of 4 fields) 
-    protected class Line {
+    private class Line {
 
         private final List<Field> fields;
         
@@ -240,22 +242,44 @@ class Connect4Board {
     public Piece getPiece(int col, int row ) {
         return Piece.ofFieldValue(board[col][row]);
     }
+    protected int getPieceValue(int col, int row ) {
+        return board[col][row];
+    }
 
     // Put a piece
-    private void putPiece(int col, Piece piece) {
-        board[col][colPieces[col]++] = piece.fieldValue;
+    protected void putPiece(int col, Piece piece) {
+        putPieceValue(col,piece.fieldValue);
+    }
+    protected void putPieceValue(int col, int p) {
+        board[col][colPieces[col]++] = p;
         totPieces++;
     }
 
     // Remove a piece
-    private void removePiece(int col) {
+    protected void removePiece(int col) {
         board[col][--colPieces[col]] = 0;
         totPieces--;
     }
 
-
-    // Remove a piece (Direct board access - high performance operation for AI players)
-    private void remove(int c) {
+    // Get the current board score, -1000 ... +1000 given for a winning combination,
+    // player1 = -player2 score
+    protected int getScore(int p) {
+        int s = 0;
+        for (Connect4Board.Line l : lines) {
+            int s1 = l.count();
+            if (s1 == -4 || s1 == +4) {
+                return p * s1 * WIN_SCORE/4;
+            }
+            s += s1;
+        }
+        return p * s;
     }
-
+    
+    protected int getColPieces(int col) {
+        return colPieces[col];
+    }
+    
+    protected int getTotPieces() {
+        return totPieces;
+    }
 }

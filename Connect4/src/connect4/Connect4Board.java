@@ -222,18 +222,19 @@ class Connect4Board {
     // Undo the last 2 moves
     public void undo() {
 
-        if (totPieces >= 2) {
+        if (totPieces > 0) {
             if (gameOver) {
                 markWinningLine(false); // Remove winning line markers
                 gameOver = false;
             }
-            for (int i = 0; i < 2; i++) { // Undo one round
-                Field f = moveStack.pop();
-                int r = f.row;
-                int c = f.col;
-                removePiece(c);
-                boardUpdate(Piece.EMPTY, false, false, c, r);
-            }
+            Field f = moveStack.pop();
+            int r = f.row;
+            int c = f.col;
+            Piece p = Piece.ofFieldValue(board[c][r]);
+            System.out.println( p + " " + c);
+            removePiece(c);
+            boardUpdate(Piece.EMPTY, false, false, c, r);
+            
             statusUpdate("");
         }
     }

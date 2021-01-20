@@ -2,6 +2,7 @@ package connect4;
 // The board
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Stack;
 
@@ -48,10 +49,10 @@ class Connect4Board {
 
     
     // Board info
-    private int[][] board; // Piece field values -1,0,+1
-    private int[] colPieces; // Number of pieces in a column
-    private int totPieces; // Overall number pieces on the board
-    private final List<Line> lines; // Array list of all possible line combinations
+    protected int[][] board; // Piece field values -1,0,+1
+    protected int[] colPieces; // Number of pieces in a column
+    protected int totPieces; // Overall number pieces on the board
+    protected final List<Line> lines; // Array list of all possible line combinations
 
     // Status
     private boolean gameOver;
@@ -77,7 +78,7 @@ class Connect4Board {
     }
 
     // Line (a winning combination of 4 fields) 
-    private class Line {
+    protected class Line {
 
         private final List<Field> fields;
         
@@ -219,23 +220,22 @@ class Connect4Board {
         }
     }
 
-    // Undo the last 2 moves
+    // Undo the last moves of player 1
     public void undo() {
 
         if (totPieces > 0) {
-            if (gameOver) {
-                markWinningLine(false); // Remove winning line markers
-                gameOver = false;
-            }
-            Field f = moveStack.pop();
-            int r = f.row;
-            int c = f.col;
-            Piece p = Piece.ofFieldValue(board[c][r]);
-            System.out.println( p + " " + c);
-            removePiece(c);
-            boardUpdate(Piece.EMPTY, false, false, c, r);
-            
-            statusUpdate("");
+                if (gameOver) {
+                    markWinningLine(false); // Remove winning line markers
+                    gameOver = false;
+                }
+                Field f = moveStack.pop();
+                int r = f.row;
+                int c = f.col;
+                Piece p = Piece.ofFieldValue(board[c][r]);
+                System.out.println(p + " " + c);
+                removePiece(c);
+                boardUpdate(Piece.EMPTY, false, false, c, r);
+                statusUpdate("");
         }
     }
 
@@ -243,44 +243,20 @@ class Connect4Board {
     public Piece getPiece(int col, int row ) {
         return Piece.ofFieldValue(board[col][row]);
     }
-    protected int getPieceValue(int col, int row ) {
-        return board[col][row];
-    }
-
+ 
     // Put a piece
     protected void putPiece(int col, Piece piece) {
-        putPieceValue(col,piece.fieldValue);
-    }
-    protected void putPieceValue(int col, int p) {
-        board[col][colPieces[col]++] = p;
+        board[col][colPieces[col]++] = piece.getFieldValue();
         totPieces++;
     }
-
+    
     // Remove a piece
     protected void removePiece(int col) {
         board[col][--colPieces[col]] = 0;
         totPieces--;
     }
 
-    // Get the current board score, -1000 ... +1000 given for a winning combination,
-    // player1 = -player2 score
-    protected int getScore(int p) {
-        int s = 0;
-        for (Connect4Board.Line l : lines) {
-            int s1 = l.count();
-            if (s1 == -4 || s1 == +4) {
-                return p * s1 * WIN_SCORE/4;
-            }
-            s += s1;
-        }
-        return p * s;
-    }
     
-    protected int getColPieces(int col) {
-        return colPieces[col];
-    }
     
-    protected int getTotPieces() {
-        return totPieces;
-    }
+     
 }

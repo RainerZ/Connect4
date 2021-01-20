@@ -28,15 +28,14 @@ public class Connect4Frame extends Parent {
     private final int DISC_SIZE = 80;
     
     private Pane discRoot;
-    private Connect4Game game;
     private Text statusText1;
     private Text statusText2;
-    
-    Connect4Frame(final Connect4Game game) {
+
+    private Connect4Game game;
+
+    Connect4Frame() {
 
         super();
-
-        this.game = game;
         
         Pane gamePane = new Pane();
         discRoot = new Pane();
@@ -51,33 +50,21 @@ public class Connect4Frame extends Parent {
         grid.setPadding(new Insets(10));
         grid.add(gamePane, 0, 0);
 
-        Button b0 = new Button("New Game");
-        b0.setMinWidth(100);
-        b0.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent e) {
-                discRoot.getChildren().clear();
-                game.newGame();
-                statusText1.setText("");
-                statusText2.setText("");
-            }
-        });
-        Button b1 = new Button("Undo");
-        b1.setMinWidth(100);
-        b1.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent e) { game.undo(); }
-        });
+        Button b0 = new Button("Human vs Computer");
+        b0.setOnAction( (e) -> newGame(false,true) );
+        Button b1 = new Button("Human vs Human");
+        b1.setOnAction( (e) -> newGame(false,false) );
+        Button b2 = new Button("Computer vs Computer");
+        b2.setOnAction( (e) -> newGame(true,true) );
+        Button b3 = new Button("Undo");
+        b3.setOnAction( (e) -> { if (game!=null) game.undo(); } );
         statusText1 = new Text();
         statusText2 = new Text();
-        VBox v = new VBox(b0,b1,statusText1,statusText2);
-        VBox.setMargin(b0, new Insets(2, 2, 2, 2));
-        VBox.setMargin(b1, new Insets(2, 2, 2, 2));
+        VBox v = new VBox(b0,b1,b2,b3,statusText1,statusText2);
+        VBox.setMargin(b3, new Insets(10, 0, 0, 0));
         grid.add(v, 1, 0);
         getChildren().add(grid);
         
-        game.registerBoardUpdateListener( (Connect4Board.Piece p, boolean animated, boolean marker, int column, int row) -> this.placeDisc(p, animated, marker, column, row) );
-        game.registerStatusUpdateListener( (String s) -> statusText2.setText(s) );
     }
 
     private Shape makeGrid() {
@@ -111,26 +98,44 @@ public class Connect4Frame extends Parent {
         return list;
     }
 
-    
+    private void newGame(boolean c1, boolean c2) {
+        discRoot.getChildren().clear();
+        game = new Connect4Game(c1, c2);
+        game.registerBoardUpdateListener((Connect4Board.Piece p, boolean animated, boolean marker, int column,
+                int row) -> placeDisc(p, animated, marker, column, row));
+        game.registerStatusUpdateListener((String s) -> statusText2.setText(s));
+        if (c1 && c2) computerMove();
+    }
+
     private void humanMove(int col) {
-        Connect4Player player = game.getNextPlayer(); 
-        if (!game.isOver() && !player.isComputer()) {
-            if (player.doMove(col)) {
-                // Computer move in 1 second to complete human move animation
-                Timeline timer = new Timeline(new KeyFrame(Duration.seconds(1), (e) -> computerMove() ));
-                timer.play();
+        if (game != null) {
+            Connect4Player player = game.getPlayer();
+            if (!game.isOver() && !player.isComputer()) {
+                if (player.doMove(col)) {
+                    game.nextPlayer();
+                    if (game.getPlayer().isComputer()) {
+                        // Computer move in 1 second to complete human move animation
+                        Timeline timer = new Timeline(new KeyFrame(Duration.seconds(1), (e) -> computerMove()));
+                        timer.play();
+                    }
+                }
             }
         }
     }
 
     private void computerMove() {
-        Connect4Player player = game.getNextPlayer(); 
+        Connect4Player player = game.getPlayer();
         if (!game.isOver() && player.isComputer()) {
-            player.calcMove();
+            if (player.calcMove()) {
+                game.nextPlayer();
+                if (game.getPlayer().isComputer()) {
+                    // Another Computer move in 1 second
+                    Timeline timer = new Timeline(new KeyFrame(Duration.seconds(1), (e) -> computerMove()));
+                    timer.play();
+                }
+            }
         }
-        
     }
-
 
     private void placeDisc(Connect4Board.Piece p, boolean animated, boolean marked, int column, int row) {  
         Circle disc = new Circle(DISC_SIZE / (marked?4:2), p.getColor());

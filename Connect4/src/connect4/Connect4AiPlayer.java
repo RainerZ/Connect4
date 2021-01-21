@@ -24,7 +24,7 @@ public class Connect4AiPlayer extends Connect4Player {
 
     @Override
     public boolean calcMove() {
-        System.out.println(name+" is thinking (depth="+maxDepth+") ...");
+        System.out.println(name+" is thinking (depth="+maxDepth+",lines="+board.lines.size()+",pieces="+board.totPieces+") ...");
         if (board.move(piece, minmax(pieceValue, 0, -1000000, +1000000))) {
             setOptimalMaxDepth();
             return true;   
@@ -88,7 +88,21 @@ public class Connect4AiPlayer extends Connect4Player {
     }
 
 
-     // Increase max depth when game advances
+   // Get the current board score, -1000 ... +1000 given for a winning combination,
+    // player1 = -player2 score
+    protected int getBoardScore(int p) {
+        int s = 0;
+        for (Connect4Board.Line l : board.lines) {
+            int s1 = l.value();
+            if (s1 == -4 || s1 == +4) {
+                return p * s1 * board.WIN_SCORE/4;
+            }
+            s += s1;
+        }
+        return p * s;
+    }
+    
+    // Increase max depth heuristic when game advances
     private void setOptimalMaxDepth() {
         int n = 0;
         for (int i=0;i<Connect4Board.COLS;i++) if (board.colPieces[i]>=Connect4Board.ROWS) n++;
@@ -107,18 +121,5 @@ public class Connect4AiPlayer extends Connect4Player {
         if (maxDepth>Connect4Board.COLS*Connect4Board.ROWS-board.totPieces) maxDepth = Connect4Board.COLS*Connect4Board.ROWS-board.totPieces;
     }
     
-    // Get the current board score, -1000 ... +1000 given for a winning combination,
-    // player1 = -player2 score
-    protected int getBoardScore(int p) {
-        int s = 0;
-        for (Connect4Board.Line l : board.lines) {
-            int s1 = l.count();
-            if (s1 == -4 || s1 == +4) {
-                return p * s1 * board.WIN_SCORE/4;
-            }
-            s += s1;
-        }
-        return p * s;
-    }
-    
+   
 } // Connect4AiPlayer

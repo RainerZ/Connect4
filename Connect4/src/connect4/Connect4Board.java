@@ -2,7 +2,7 @@ package connect4;
 // The board
 
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 
@@ -48,11 +48,11 @@ class Connect4Board {
     }
 
     
-    // Board info
+    // Board data
     protected int[][] board; // Piece field values -1,0,+1
     protected int[] colPieces; // Number of pieces in a column
     protected int totPieces; // Overall number pieces on the board
-    protected final List<Line> lines; // Array list of all possible line combinations
+    protected List<Line> lines; // Array list of all still possible line combinations
 
     // Status
     private boolean gameOver;
@@ -89,7 +89,7 @@ class Connect4Board {
             }
         }
 
-        public int count() { // Count number of unique pieces in this line
+        public int value() { // Count number of unique pieces in this line
             int s = 0;
             for (Field f : fields) {
                 int sf = f.getFieldValue();
@@ -98,41 +98,19 @@ class Connect4Board {
             }
             return s;
         }
+
+        public int count() { // Count number of pieces in this line
+            int n = 0;
+            for (Field f : fields) {
+                if (f.getFieldValue()!=0) n++;
+            }
+            return n;
+        }
     }
 
-    // Notify somebody (GUI) on board changes
-    private BoardUpdateListener boardUpdateListener;
-    public interface BoardUpdateListener {
-        public void Update(Piece piece, boolean isNew, boolean marker, int column, int row);        
-    };     
-    public void registerBoardUpdateListener( BoardUpdateListener l ) {
-        boardUpdateListener = l;
-    }
-    protected void boardUpdate(Piece piece, boolean isNew, boolean marker, int col, int row) {
-        if (boardUpdateListener!=null) boardUpdateListener.Update(piece,isNew,marker,col,row); 
-    }
-
-    // Notify somebody (GUI) on status changes
-    private StatusUpdateListener statusUpdateListener;
-    public interface StatusUpdateListener {
-        public void PrintStatus(String s);        
-    };   
-    public void registerStatusUpdateListener( StatusUpdateListener l ) {
-        statusUpdateListener = l;
-    }
-    protected void statusUpdate(String s) {
-        if (statusUpdateListener!=null) statusUpdateListener.PrintStatus(s);
-    }
-      
-    // Create a game
-    Connect4Board() {
-
-        // Create board
-        board = new int[COLS][ROWS];
-        colPieces = new int[COLS];
-
-        // Create all winning line combinations once
-        lines = new ArrayList<Line>();
+    // Create all winning line combinations of an empty field
+    private List<Line> buildLines() {
+        List<Line> lines = new ArrayList<Line>();
         for (int r = 0; r < ROWS; r++) {
             for (int c = 0; c < COLS; c++) {
                 if (r + 4 <= ROWS)
@@ -145,13 +123,26 @@ class Connect4Board {
                     lines.add(new Line(c, r, -1, 1));
             }
         }
-
-        init(); // Go
+        return lines;
     }
 
-    // New game
-    public void init() {
+    // Remove all lines which currently do not have any more impact on the game
+    protected void updateLines() {       
+        Iterator<Line> i = lines.iterator();
+        while (i.hasNext()) {
+            Line l = i.next();
+            if (l.count() != 0 && l.value() == 0) {
+                i.remove();
+            }
+        }
+    }
 
+    // Create a game
+    Connect4Board() {
+
+        // Create board
+        board = new int[COLS][ROWS];
+        colPieces = new int[COLS];
         totPieces = 0;
         for (int c = 0; c < COLS; c++) {
             colPieces[c] = 0;
@@ -159,7 +150,7 @@ class Connect4Board {
                 board[c][r] = Piece.EMPTY.fieldValue;
             }
         }
-
+        lines = buildLines();
         gameOver = false;
         moveStack = new Stack<Field>();
 
@@ -173,7 +164,7 @@ class Connect4Board {
     // Find a line completed with 4 pieces
     private Line getWinningLine() {
         for (Line l : lines) {
-            int s = l.count();
+            int s = l.value();
             if (s == -4 || s == +4) return l;
         }
         return null;
@@ -234,29 +225,51 @@ class Connect4Board {
                 Piece p = Piece.ofFieldValue(board[c][r]);
                 System.out.println(p + " " + c);
                 removePiece(c);
+                lines = buildLines(); // Rebuild the line list
+                updateLines();
                 boardUpdate(Piece.EMPTY, false, false, c, r);
                 statusUpdate("");
         }
     }
 
-    // Get a piece
-    public Piece getPiece(int col, int row ) {
-        return Piece.ofFieldValue(board[col][row]);
-    }
- 
     // Put a piece
     protected void putPiece(int col, Piece piece) {
         board[col][colPieces[col]++] = piece.getFieldValue();
         totPieces++;
+        updateLines();
     }
     
     // Remove a piece
     protected void removePiece(int col) {
         board[col][--colPieces[col]] = 0;
         totPieces--;
+        updateLines();
     }
 
-    
-    
-     
+ 
+    // Notify somebody (GUI) on board changes
+    private BoardUpdateListener boardUpdateListener;
+    public interface BoardUpdateListener {
+        public void Update(Piece piece, boolean isNew, boolean marker, int column, int row);        
+    };     
+    public void registerBoardUpdateListener( BoardUpdateListener l ) {
+        boardUpdateListener = l;
+    }
+    protected void boardUpdate(Piece piece, boolean isNew, boolean marker, int col, int row) {
+        if (boardUpdateListener!=null) boardUpdateListener.Update(piece,isNew,marker,col,row); 
+    }
+
+    // Notify somebody (GUI) on status changes
+    private StatusUpdateListener statusUpdateListener;
+    public interface StatusUpdateListener {
+        public void PrintStatus(String s);        
+    };   
+    public void registerStatusUpdateListener( StatusUpdateListener l ) {
+        statusUpdateListener = l;
+    }
+    protected void statusUpdate(String s) {
+        if (statusUpdateListener!=null) statusUpdateListener.PrintStatus(s);
+    }
+      
+
 }

@@ -32,15 +32,10 @@ final public class Connect4Game {
             player2 = new Connect4Player(board, Connect4Board.Piece.YELLOW, "Human (Yellow)");
         }
 
-        newGame(); // Go
-    }
-
-    // New game
-    public void newGame() {
-        board.init();
         nextPlayer = player1; // Player1 starts
     }
 
+   
     // Undo
     public void undo() {
         if (nextPlayer.isComputer()) return;

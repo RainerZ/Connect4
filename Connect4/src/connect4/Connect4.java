@@ -2,6 +2,7 @@ package connect4;
 // The application
 
 
+import connect4gui.Connect4Frame;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;

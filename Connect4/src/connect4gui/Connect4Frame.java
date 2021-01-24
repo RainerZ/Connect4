@@ -1,11 +1,9 @@
-package connect4;
+package connect4gui;
 // The javafx gui
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
@@ -22,6 +20,8 @@ import javafx.util.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+import connect4game.Connect4Game;
+
 
 public class Connect4Frame extends Parent {
 
@@ -33,7 +33,7 @@ public class Connect4Frame extends Parent {
 
     private Connect4Game game;
 
-    Connect4Frame() {
+    public Connect4Frame() {
 
         super();
         
@@ -68,9 +68,9 @@ public class Connect4Frame extends Parent {
     }
 
     private Shape makeGrid() {
-        Shape shape = new Rectangle((Connect4Board.COLS + 1) * DISC_SIZE, (Connect4Board.ROWS + 1) * DISC_SIZE);
-        for (int y = 0; y < Connect4Board.ROWS; y++) {
-            for (int x = 0; x < Connect4Board.COLS; x++) {
+        Shape shape = new Rectangle((game.COLS + 1) * DISC_SIZE, (game.ROWS + 1) * DISC_SIZE);
+        for (int y = 0; y < game.ROWS; y++) {
+            for (int x = 0; x < game.COLS; x++) {
                 Circle circle = new Circle(DISC_SIZE / 2);
                 circle.setCenterX(DISC_SIZE / 2);
                 circle.setCenterY(DISC_SIZE / 2);
@@ -85,8 +85,8 @@ public class Connect4Frame extends Parent {
 
     private List<Rectangle> makeColumns() {
         List<Rectangle> list = new ArrayList<>();
-        for (int x = 0; x < Connect4Board.COLS; x++) {
-            Rectangle rect = new Rectangle(DISC_SIZE, (Connect4Board.ROWS + 1) * DISC_SIZE);
+        for (int x = 0; x < game.COLS; x++) {
+            Rectangle rect = new Rectangle(DISC_SIZE, (game.ROWS + 1) * DISC_SIZE);
             rect.setTranslateX(x * (DISC_SIZE + 5) + DISC_SIZE / 4);
             rect.setFill(Color.TRANSPARENT);
             rect.setOnMouseEntered(e -> rect.setFill(Color.rgb(200, 200, 200, 0.2)));
@@ -101,54 +101,48 @@ public class Connect4Frame extends Parent {
     private void newGame(boolean c1, boolean c2) {
         discRoot.getChildren().clear();
         game = new Connect4Game(c1, c2);
-        game.registerBoardUpdateListener((Connect4Board.Piece p, boolean animated, boolean marker, int column,
-                int row) -> placeDisc(p, animated, marker, column, row));
+        game.registerBoardUpdateListener((Color color, boolean animated, boolean marker, int column,
+                int row) -> placeDisc(color, animated, marker, column, row));
         game.registerStatusUpdateListener((String s) -> statusText2.setText(s));
         if (c1 && c2) computerMove();
     }
 
     private void humanMove(int col) {
-        if (game != null) {
-            Connect4Player player = game.getPlayer();
-            if (!game.isOver() && !player.isComputer()) {
-                if (player.doMove(col)) {
-                    game.nextPlayer();
-                    if (game.getPlayer().isComputer()) {
-                        // Computer move in 1 second to complete human move animation
-                        Timeline timer = new Timeline(new KeyFrame(Duration.seconds(1), (e) -> computerMove()));
-                        timer.play();
-                    }
-                }
+        if (game == null) { // Start a new human vs computer game if column is clicked 
+            newGame(false,true);
+        }
+        if (game.humanMove(col)) {
+            // Computer move in 1 second to complete human move animation
+            if (game.nextIsComputer()) {
+                Timeline timer = new Timeline(new KeyFrame(Duration.seconds(1), (e) -> computerMove()));
+                timer.play();
             }
         }
     }
 
     private void computerMove() {
-        Connect4Player player = game.getPlayer();
-        if (!game.isOver() && player.isComputer()) {
-            if (player.calcMove()) {
-                game.nextPlayer();
-                if (game.getPlayer().isComputer()) {
-                    // Another Computer move in 1 second
-                    Timeline timer = new Timeline(new KeyFrame(Duration.seconds(1), (e) -> computerMove()));
-                    timer.play();
-                }
+        if (game.computerMove()) {
+            // Another Computer move in 1 second
+            if (game.nextIsComputer()) {
+              Timeline timer = new Timeline(new KeyFrame(Duration.seconds(1), (e) -> computerMove()));
+              timer.play();
             }
         }
     }
 
-    private void placeDisc(Connect4Board.Piece p, boolean animated, boolean marked, int column, int row) {  
-        Circle disc = new Circle(DISC_SIZE / (marked?4:2), p.getColor());
+
+    private void placeDisc(Color color, boolean animated, boolean marked, int column, int row) {  
+        Circle disc = new Circle(DISC_SIZE / (marked?4:2), color);
         disc.setCenterX(DISC_SIZE / 2);
         disc.setCenterY(DISC_SIZE / 2);
         discRoot.getChildren().add(disc);
         disc.setTranslateX(column * (DISC_SIZE + 5) + DISC_SIZE / 4);
         if (marked || !animated) {
-            disc.setTranslateY((Connect4Board.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);            
+            disc.setTranslateY((Connect4Game.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);            
         }
         else { // Animate drop
             TranslateTransition animation = new TranslateTransition(Duration.seconds(0.6), disc);
-            animation.setToY((Connect4Board.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);
+            animation.setToY((Connect4Game.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);
             animation.play();
         }
     }

@@ -1,5 +1,6 @@
-package connect4;
+package connect4game;
 // The Connect4 player
+
 
 class Connect4Player {
 
@@ -7,7 +8,7 @@ class Connect4Player {
     final Connect4Board.Piece piece;
     final String name;
     
-    Connect4Player(Connect4Board board, Connect4Board.Piece piece, String name) {
+    public Connect4Player(Connect4Board board, Connect4Board.Piece piece, String name) {
         this.board = board;
         this.piece = piece;
         this.name = name;

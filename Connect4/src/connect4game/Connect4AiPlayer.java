@@ -1,6 +1,5 @@
-package connect4;
+package connect4game;
 // A player with minmax ai algorithm
-
 
 public class Connect4AiPlayer extends Connect4Player {
 
@@ -11,19 +10,19 @@ public class Connect4AiPlayer extends Connect4Player {
     private final int initialMaxDepth;
     private final int pieceValue;
 
-   Connect4AiPlayer(Connect4Board board, Connect4Board.Piece p, String name, int maxDepth) {
+    Connect4AiPlayer(Connect4Board board, Connect4Board.Piece p, String name, int maxDepth) {
         super(board,p,name);
         this.initialMaxDepth = this.maxDepth = maxDepth;
         pieceValue = piece.getFieldValue();
     }
 
     @Override
-    public boolean isComputer() {
+    boolean isComputer() {
         return true;
     }
 
     @Override
-    public boolean calcMove() {
+    boolean calcMove() {
         System.out.println(name+" is thinking (depth="+maxDepth+",lines="+board.lines.size()+",pieces="+board.totPieces+") ...");
         if (board.move(piece, minmax(pieceValue, 0, -1000000, +1000000))) {
             setOptimalMaxDepth();

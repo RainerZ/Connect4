@@ -1,7 +1,13 @@
-package connect4;
+package connect4game;
 // The game logic
 
+import javafx.scene.paint.Color;
+
 final public class Connect4Game {
+
+    // Parameters and constants
+    public final static int COLS   = 7;        // Board
+    public final static int ROWS   = 6;
 
     // The players
     private final Connect4Player player1;
@@ -13,7 +19,7 @@ final public class Connect4Game {
 
       
     // Create a game
-    Connect4Game(boolean computer1, boolean computer2) {
+    public Connect4Game(boolean computer1, boolean computer2) {
 
         // Create board
         board = new Connect4Board();
@@ -37,7 +43,7 @@ final public class Connect4Game {
 
    
     // Undo
-    void undo() {
+    public void undo() {
         if (nextPlayer.isComputer()) return;
         board.undo();
         nextPlayer();
@@ -47,27 +53,60 @@ final public class Connect4Game {
         }
     }
     
+    // Notify somebody (GUI) on board changes
+    public interface BoardUpdateListener {
+        public void Update(Color color, boolean isNew, boolean marker, int column, int row);        
+    };     
+    
+    // Notify somebody (GUI) on status changes
+    public interface StatusUpdateListener {
+        public void PrintStatus(String s);        
+    };   
+    
     // Register callbacks for board changes and status text changes
-    void registerBoardUpdateListener( Connect4Board.BoardUpdateListener l ) {
+    public void registerBoardUpdateListener( BoardUpdateListener l ) {
         board.registerBoardUpdateListener(l);
     }
-    void registerStatusUpdateListener( Connect4Board.StatusUpdateListener l ) {
+    public void registerStatusUpdateListener( StatusUpdateListener l ) {
         board.registerStatusUpdateListener(l);
     }
 
-    // Get current player
-    Connect4Player getPlayer() {
-      return nextPlayer;
-    }
+   
     
-    void nextPlayer() {
+    private void nextPlayer() {
         nextPlayer = (nextPlayer==player1) ? player2:player1;
         System.out.println("Next player is " + nextPlayer.getName());
     }
             
     // Check game is over
-    boolean isOver() {
+    public boolean isOver() {
         return board.isGameOver();
     }
+    
+    // Check next player is computer
+    public boolean nextIsComputer() {
+        return nextPlayer.isComputer();
+    }
+    
+    public boolean humanMove(int col) {
+        if (!isOver() && !nextPlayer.isComputer()) {
+            if (nextPlayer.doMove(col)) {
+                nextPlayer();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean computerMove() {
+        if (!isOver() && nextPlayer.isComputer()) {
+            if (nextPlayer.calcMove()) {
+                nextPlayer();
+                return true;
+            }
+        }
+        return false;
+    }
+
 
 }

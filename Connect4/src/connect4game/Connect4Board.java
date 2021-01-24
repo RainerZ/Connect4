@@ -1,4 +1,4 @@
-package connect4;
+package connect4game;
 // The board
 
 import java.util.ArrayList;
@@ -248,23 +248,19 @@ class Connect4Board {
 
  
     // Notify somebody (GUI) on board changes
-    private BoardUpdateListener boardUpdateListener;
-    interface BoardUpdateListener {
-        public void Update(Piece piece, boolean isNew, boolean marker, int column, int row);        
-    };     
-    void registerBoardUpdateListener( BoardUpdateListener l ) {
+    private Connect4Game.BoardUpdateListener boardUpdateListener;
+        
+    void registerBoardUpdateListener( Connect4Game.BoardUpdateListener l ) {
         boardUpdateListener = l;
     }
     void boardUpdate(Piece piece, boolean isNew, boolean marker, int col, int row) {
-        if (boardUpdateListener!=null) boardUpdateListener.Update(piece,isNew,marker,col,row); 
+        if (boardUpdateListener!=null) boardUpdateListener.Update(piece.color,isNew,marker,col,row); 
     }
 
     // Notify somebody (GUI) on status changes
-    private StatusUpdateListener statusUpdateListener;
-    interface StatusUpdateListener {
-        public void PrintStatus(String s);        
-    };   
-    void registerStatusUpdateListener( StatusUpdateListener l ) {
+    private Connect4Game.StatusUpdateListener statusUpdateListener;
+     
+    void registerStatusUpdateListener( Connect4Game.StatusUpdateListener l ) {
         statusUpdateListener = l;
     }
     void statusUpdate(String s) {

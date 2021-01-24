@@ -3,7 +3,6 @@ package connect4game;
 
 public class Connect4AiPlayer extends Connect4Player {
 
- 
     private final int[] colOrder = { 3, 4, 2, 1, 5, 0, 6 }; // Column priority (helps alpha/beta)
 
     private int maxDepth; // max search depth
@@ -23,7 +22,7 @@ public class Connect4AiPlayer extends Connect4Player {
 
     @Override
     boolean calcMove() {
-        System.out.println(name+" is thinking (depth="+maxDepth+",lines="+board.lines.size()+",pieces="+board.totPieces+") ...");
+        System.out.println(name+" is thinking (depth="+maxDepth+",lines="+board.getLines().size()+",pieces="+board.getTotPieces()+") ...");
         if (board.move(piece, minmax(pieceValue, 0, -1000000, +1000000))) {
             setOptimalMaxDepth();
             return true;   
@@ -35,7 +34,7 @@ public class Connect4AiPlayer extends Connect4Player {
     private int minmax(int p, int depth, int alpha, int beta) {
 
         int s = getBoardScore(p);
-        if (depth >= maxDepth || board.totPieces >= Connect4Game.ROWS * Connect4Game.COLS || s == +Connect4Board.WIN_SCORE
+        if (depth >= maxDepth || board.getTotPieces() >= Connect4Game.ROWS * Connect4Game.COLS || s == +Connect4Board.WIN_SCORE
                 || s == -Connect4Board.WIN_SCORE)
             return s; // depth or game over
 
@@ -43,16 +42,10 @@ public class Connect4AiPlayer extends Connect4Player {
         int c_max = -1;
         for (int i = 0; i < Connect4Game.COLS; i++) {
             int c = colOrder[i];
-            if (board.colPieces[c] < Connect4Game.ROWS) {
-
-                board.board[c][board.colPieces[c]++] = p;
-                board.totPieces++;
-                
+            if (board.getColPieces(c) < Connect4Game.ROWS) {
+                board.putPiece(c,p);
                 s = -minmax(-p, depth + 1, -beta, -alpha);
-
-                board.board[c][--board.colPieces[c]] = 0;
-                board.totPieces--;
-
+                board.removePiece(c);
                 if (s > s_max) {
                     s_max = s;
                     c_max = c;
@@ -89,9 +82,9 @@ public class Connect4AiPlayer extends Connect4Player {
 
    // Get the current board score, -1000 ... +1000 given for a winning combination,
     // player1 = -player2 score
-    int getBoardScore(int p) {
+    private int getBoardScore(int p) {
         int s = 0;
-        for (Connect4Board.Line l : board.lines) {
+        for (Connect4Board.Line l : board.getLines()) {
             int s1 = l.value();
             if (s1 == -4 || s1 == +4) {
                 return p * s1 * Connect4Board.WIN_SCORE/4;
@@ -104,12 +97,12 @@ public class Connect4AiPlayer extends Connect4Player {
     // Increase max depth heuristic when game advances
     private void setOptimalMaxDepth() {
         int n = 0;
-        for (int i=0;i<Connect4Game.COLS;i++) if (board.colPieces[i]>=Connect4Game.ROWS) n++;
+        for (int i=0;i<Connect4Game.COLS;i++) if (board.getColPieces(i)>=Connect4Game.ROWS) n++;
         maxDepth = initialMaxDepth;
         switch (n) {
         case 0: 
         case 1: 
-            if (board.totPieces>16) maxDepth += 1;
+            if (board.getTotPieces()>16) maxDepth += 1;
             break;
         case 2: 
             maxDepth += 2; 
@@ -117,7 +110,7 @@ public class Connect4AiPlayer extends Connect4Player {
         default: 
             maxDepth = 18; 
         }
-        if (maxDepth>Connect4Game.COLS*Connect4Game.ROWS-board.totPieces) maxDepth = Connect4Game.COLS*Connect4Game.ROWS-board.totPieces;
+        if (maxDepth>Connect4Game.COLS*Connect4Game.ROWS-board.getTotPieces()) maxDepth = Connect4Game.COLS*Connect4Game.ROWS-board.getTotPieces();
     }
     
    

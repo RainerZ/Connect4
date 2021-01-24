@@ -45,10 +45,10 @@ class Connect4Board {
 
     
     // Board data
-    int[][] board; // Piece field values -1,0,+1
-    int[] colPieces; // Number of pieces in a column
-    int totPieces; // Overall number pieces on the board
-    List<Line> lines; // Array list of all still possible line combinations
+    private int[][] board; // Piece field values -1,0,+1
+    private int[] colPieces; // Number of pieces in a column
+    private int totPieces; // Overall number pieces on the board
+    private List<Line> lines; // Array list of all still possible line combinations
 
     // Status
     private boolean gameOver;
@@ -64,11 +64,11 @@ class Connect4Board {
             this.col = col;
         }
 
-        public int getFieldValue() { 
+        int getFieldValue() { 
             return board[col][row]; 
         }
 
-        public Piece getPiece() { 
+        Piece getPiece() { 
             return Piece.ofFieldValue(board[col][row]);
         }
     }
@@ -78,7 +78,7 @@ class Connect4Board {
 
         private final List<Field> fields;
         
-        Line(int col, int row, int colo, int rowo) { // Create a winning line starting at (col,rol) in direction (colo,rowo)
+        private Line(int col, int row, int colo, int rowo) { // Create a winning line starting at (col,rol) in direction (colo,rowo)
             fields = new ArrayList<Field>();
             for (int i = 0; i < 4; i++) {
                 fields.add(new Field(col + i * colo, row + i * rowo));
@@ -122,9 +122,13 @@ class Connect4Board {
         return lines;
     }
 
+    List<Line> getLines() {
+        return lines;
+    }
+
     // Remove all lines which currently do not have any more impact on the game
     void updateLines() {       
-        Iterator<Line> i = lines.iterator();
+        Iterator<Line> i = getLines().iterator();
         while (i.hasNext()) {
             Line l = i.next();
             if (l.count() != 0 && l.value() == 0) {
@@ -159,7 +163,7 @@ class Connect4Board {
     
     // Find a line completed with 4 pieces
     private Line getWinningLine() {
-        for (Line l : lines) {
+        for (Line l : getLines()) {
             int s = l.value();
             if (s == -4 || s == +4) return l;
         }
@@ -185,9 +189,10 @@ class Connect4Board {
 
         System.out.println("board.move("+piece.name()+"," + col + ")");
 
-        int r = colPieces[col];
+        int r = getColPieces(col);
         if (r < Connect4Game.ROWS && !gameOver) {
-            putPiece(col, piece);
+            putPiece(col, piece.getFieldValue());
+            updateLines();
             boardUpdate(piece, true, false, col, r);
             moveStack.push(new Field(col, r));
             Line l = getWinningLine();
@@ -196,7 +201,7 @@ class Connect4Board {
                 markWinningLine(true);
                 gameOver = true;
             } 
-            else if (totPieces >= Connect4Game.ROWS * Connect4Game.COLS) {
+            else if (getTotPieces() >= Connect4Game.ROWS * Connect4Game.COLS) {
                 statusUpdate("Game over!");
                 gameOver = true;
             }
@@ -210,7 +215,7 @@ class Connect4Board {
     // Undo the last moves of player 1
     void undo() {
 
-        if (totPieces > 0) {
+        if (getTotPieces() > 0) {
                 if (gameOver) {
                     markWinningLine(false); // Remove winning line markers
                     gameOver = false;
@@ -229,20 +234,26 @@ class Connect4Board {
     }
 
     // Put a piece
-    void putPiece(int col, Piece piece) {
-        board[col][colPieces[col]++] = piece.getFieldValue();
-        totPieces++;
-        updateLines();
+    void putPiece(int col, int p) {
+        board[col][colPieces[col]++] = p;
+        totPieces = getTotPieces() + 1;
     }
     
     // Remove a piece
     void removePiece(int col) {
         board[col][--colPieces[col]] = 0;
-        totPieces--;
-        updateLines();
+        totPieces = getTotPieces() - 1;
     }
 
- 
+    int getColPieces(int col) {
+        return colPieces[col];
+    }
+
+    int getTotPieces() {
+        return totPieces;
+    }
+
+
     // Notify somebody (GUI) on board changes
     private Connect4Game.BoardUpdateListener boardUpdateListener;
         

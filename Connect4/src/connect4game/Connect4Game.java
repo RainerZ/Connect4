@@ -17,8 +17,7 @@ final public class Connect4Game {
     // The board
     private final Connect4Board board;
 
-      
-    // Create a game
+    // Create a game, a game has a board and two players
     public Connect4Game(boolean computer1, boolean computer2) {
 
         // Create board
@@ -42,28 +41,17 @@ final public class Connect4Game {
     }
 
    
-    // Undo
-    public void undo() {
-        if (nextPlayer.isComputer()) return;
-        board.undo();
-        nextPlayer();
-        if (player1.isComputer()||player2.isComputer()) {
-          board.undo();
-          nextPlayer();
-        }
-    }
-    
-    // Notify somebody (GUI) on board changes
+    // Notify somebody (GUI) on game board changes
     public interface BoardUpdateListener {
         public void Update(Color color, boolean isNew, boolean marker, int column, int row);        
     };     
     
-    // Notify somebody (GUI) on status changes
+    // Notify somebody (GUI) on game status changes
     public interface StatusUpdateListener {
         public void PrintStatus(String s);        
     };   
     
-    // Register callbacks for board changes and status text changes
+    // Register callbacks for board changes and status changes
     public void registerBoardUpdateListener( BoardUpdateListener l ) {
         board.registerBoardUpdateListener(l);
     }
@@ -72,10 +60,9 @@ final public class Connect4Game {
     }
 
    
-    
+    // Switch players
     private void nextPlayer() {
         nextPlayer = (nextPlayer==player1) ? player2:player1;
-        System.out.println("Next player is " + nextPlayer.getName());
     }
             
     // Check game is over
@@ -88,25 +75,41 @@ final public class Connect4Game {
         return nextPlayer.isComputer();
     }
     
+    // Do a move for next human player
     public boolean humanMove(int col) {
         if (!isOver() && !nextPlayer.isComputer()) {
             if (nextPlayer.doMove(col)) {
                 nextPlayer();
+                System.out.println("Next player is " + nextPlayer.getName());
                 return true;
             }
         }
         return false;
     }
 
+    // Do a move for next computer player
     public boolean computerMove() {
         if (!isOver() && nextPlayer.isComputer()) {
             if (nextPlayer.calcMove()) {
                 nextPlayer();
+                System.out.println("Next player is " + nextPlayer.getName());
                 return true;
             }
         }
         return false;
     }
+    
+    // Undo one (human vs human) or two (human vs computer) moves 
+    public void undo() {
+        if (nextPlayer.isComputer()) return;
+        board.undo();
+        nextPlayer();
+        if (player1.isComputer()||player2.isComputer()) {
+          board.undo();
+          nextPlayer();
+        }
+    }
+    
 
 
 }

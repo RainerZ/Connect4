@@ -11,11 +11,7 @@ import javafx.scene.paint.Color;
 
 class Connect4Board {
 
-    // Parameters and constants
-    final static int COLS   = 7;        // Board
-    final static int ROWS   = 6;
-    
-    final int WIN_SCORE  = 1000;  // Score (Stellungsbewertung)
+    final static int WIN_SCORE  = 1000;  // Score (Stellungsbewertung)
 
     // The piece
     static enum Piece {
@@ -111,15 +107,15 @@ class Connect4Board {
     // Create all winning line combinations of an empty field
     private List<Line> buildLines() {
         List<Line> lines = new ArrayList<Line>();
-        for (int r = 0; r < ROWS; r++) {
-            for (int c = 0; c < COLS; c++) {
-                if (r + 4 <= ROWS)
+        for (int r = 0; r < Connect4Game.ROWS; r++) {
+            for (int c = 0; c < Connect4Game.COLS; c++) {
+                if (r + 4 <= Connect4Game.ROWS)
                     lines.add(new Line(c, r, 0, 1)); // Vertical
-                if (c + 4 <= COLS)
+                if (c + 4 <= Connect4Game.COLS)
                     lines.add(new Line(c, r, 1, 0)); // Horizontal
-                if (r + 4 <= ROWS && c + 4 <= COLS)
+                if (r + 4 <= Connect4Game.ROWS && c + 4 <= Connect4Game.COLS)
                     lines.add(new Line(c, r, 1, 1)); // Diagonal
-                if (r + 4 <= ROWS && c - 3 >= 0)
+                if (r + 4 <= Connect4Game.ROWS && c - 3 >= 0)
                     lines.add(new Line(c, r, -1, 1));
             }
         }
@@ -141,12 +137,12 @@ class Connect4Board {
     Connect4Board() {
 
         // Create board
-        board = new int[COLS][ROWS];
-        colPieces = new int[COLS];
+        board = new int[Connect4Game.COLS][Connect4Game.ROWS];
+        colPieces = new int[Connect4Game.COLS];
         totPieces = 0;
-        for (int c = 0; c < COLS; c++) {
+        for (int c = 0; c < Connect4Game.COLS; c++) {
             colPieces[c] = 0;
-            for (int r = 0; r < ROWS; r++) {
+            for (int r = 0; r < Connect4Game.ROWS; r++) {
                 board[c][r] = Piece.EMPTY.fieldValue;
             }
         }
@@ -190,7 +186,7 @@ class Connect4Board {
         System.out.println("board.move("+piece.name()+"," + col + ")");
 
         int r = colPieces[col];
-        if (r < ROWS && !gameOver) {
+        if (r < Connect4Game.ROWS && !gameOver) {
             putPiece(col, piece);
             boardUpdate(piece, true, false, col, r);
             moveStack.push(new Field(col, r));
@@ -200,7 +196,7 @@ class Connect4Board {
                 markWinningLine(true);
                 gameOver = true;
             } 
-            else if (totPieces >= ROWS * COLS) {
+            else if (totPieces >= Connect4Game.ROWS * Connect4Game.COLS) {
                 statusUpdate("Game over!");
                 gameOver = true;
             }

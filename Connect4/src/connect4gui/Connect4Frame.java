@@ -112,8 +112,7 @@ public class Connect4Frame extends Parent {
             newGame(false,true);
         }
         if (game.humanMove(col)) {
-            // Computer move in 1 second to complete human move animation
-            if (game.nextIsComputer()) {
+            if (game.nextIsComputer()) { // Computer move in 1 second to complete human move animation
                 Timeline timer = new Timeline(new KeyFrame(Duration.seconds(1), (e) -> computerMove()));
                 timer.play();
             }
@@ -122,8 +121,7 @@ public class Connect4Frame extends Parent {
 
     private void computerMove() {
         if (game.computerMove()) {
-            // Another Computer move in 1 second
-            if (game.nextIsComputer()) {
+            if (game.nextIsComputer()) { // Do another Computer move in 1 second
               Timeline timer = new Timeline(new KeyFrame(Duration.seconds(1), (e) -> computerMove()));
               timer.play();
             }

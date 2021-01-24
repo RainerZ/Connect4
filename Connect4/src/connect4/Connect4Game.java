@@ -37,7 +37,7 @@ final public class Connect4Game {
 
    
     // Undo
-    public void undo() {
+    void undo() {
         if (nextPlayer.isComputer()) return;
         board.undo();
         nextPlayer();
@@ -48,25 +48,25 @@ final public class Connect4Game {
     }
     
     // Register callbacks for board changes and status text changes
-    public void registerBoardUpdateListener( Connect4Board.BoardUpdateListener l ) {
+    void registerBoardUpdateListener( Connect4Board.BoardUpdateListener l ) {
         board.registerBoardUpdateListener(l);
     }
-    public void registerStatusUpdateListener( Connect4Board.StatusUpdateListener l ) {
+    void registerStatusUpdateListener( Connect4Board.StatusUpdateListener l ) {
         board.registerStatusUpdateListener(l);
     }
 
     // Get current player
-    public Connect4Player getPlayer() {
+    Connect4Player getPlayer() {
       return nextPlayer;
     }
     
-    public void nextPlayer() {
+    void nextPlayer() {
         nextPlayer = (nextPlayer==player1) ? player2:player1;
         System.out.println("Next player is " + nextPlayer.getName());
     }
             
     // Check game is over
-    public boolean isOver() {
+    boolean isOver() {
         return board.isGameOver();
     }
 

@@ -12,13 +12,13 @@ import javafx.scene.paint.Color;
 class Connect4Board {
 
     // Parameters and constants
-    public final static int COLS   = 7;        // Board
-    public final static int ROWS   = 6;
+    final static int COLS   = 7;        // Board
+    final static int ROWS   = 6;
     
-    public final int WIN_SCORE  = 1000;  // Score (Stellungsbewertung)
+    final int WIN_SCORE  = 1000;  // Score (Stellungsbewertung)
 
     // The piece
-    public static enum Piece {
+    static enum Piece {
         
         RED(+1,Color.RED), YELLOW(-1,Color.YELLOW), EMPTY(0,Color.WHITE); 
        
@@ -30,11 +30,11 @@ class Connect4Board {
               this.color = color;
         }
 
-        public int getFieldValue() {
+        int getFieldValue() {
             return fieldValue;
         }
         
-        public static Piece ofFieldValue( int f ) {
+        static Piece ofFieldValue( int f ) {
             switch (f) {
             case -1: return YELLOW;
             case +1: return RED;
@@ -42,17 +42,17 @@ class Connect4Board {
             }
         }
 
-        public Color getColor() {
+        Color getColor() {
             return color;
           }
     }
 
     
     // Board data
-    protected int[][] board; // Piece field values -1,0,+1
-    protected int[] colPieces; // Number of pieces in a column
-    protected int totPieces; // Overall number pieces on the board
-    protected List<Line> lines; // Array list of all still possible line combinations
+    int[][] board; // Piece field values -1,0,+1
+    int[] colPieces; // Number of pieces in a column
+    int totPieces; // Overall number pieces on the board
+    List<Line> lines; // Array list of all still possible line combinations
 
     // Status
     private boolean gameOver;
@@ -78,7 +78,7 @@ class Connect4Board {
     }
 
     // Line (a winning combination of 4 fields) 
-    protected class Line {
+    class Line {
 
         private final List<Field> fields;
         
@@ -89,7 +89,7 @@ class Connect4Board {
             }
         }
 
-        public int value() { // Count number of unique pieces in this line
+        int value() { // Count number of unique pieces in this line
             int s = 0;
             for (Field f : fields) {
                 int sf = f.getFieldValue();
@@ -99,7 +99,7 @@ class Connect4Board {
             return s;
         }
 
-        public int count() { // Count number of pieces in this line
+        int count() { // Count number of pieces in this line
             int n = 0;
             for (Field f : fields) {
                 if (f.getFieldValue()!=0) n++;
@@ -127,7 +127,7 @@ class Connect4Board {
     }
 
     // Remove all lines which currently do not have any more impact on the game
-    protected void updateLines() {       
+    void updateLines() {       
         Iterator<Line> i = lines.iterator();
         while (i.hasNext()) {
             Line l = i.next();
@@ -157,7 +157,7 @@ class Connect4Board {
         statusUpdate("");
     }
          
-    public boolean isGameOver() {
+    boolean isGameOver() {
         return gameOver;
     }
     
@@ -185,7 +185,7 @@ class Connect4Board {
     }
 
     // Do a move, check and update game status, push to undo stack
-    public boolean move(Piece piece, int col) {
+    boolean move(Piece piece, int col) {
 
         System.out.println("board.move("+piece.name()+"," + col + ")");
 
@@ -212,7 +212,7 @@ class Connect4Board {
     }
 
     // Undo the last moves of player 1
-    public void undo() {
+    void undo() {
 
         if (totPieces > 0) {
                 if (gameOver) {
@@ -233,14 +233,14 @@ class Connect4Board {
     }
 
     // Put a piece
-    protected void putPiece(int col, Piece piece) {
+    void putPiece(int col, Piece piece) {
         board[col][colPieces[col]++] = piece.getFieldValue();
         totPieces++;
         updateLines();
     }
     
     // Remove a piece
-    protected void removePiece(int col) {
+    void removePiece(int col) {
         board[col][--colPieces[col]] = 0;
         totPieces--;
         updateLines();
@@ -249,25 +249,25 @@ class Connect4Board {
  
     // Notify somebody (GUI) on board changes
     private BoardUpdateListener boardUpdateListener;
-    public interface BoardUpdateListener {
+    interface BoardUpdateListener {
         public void Update(Piece piece, boolean isNew, boolean marker, int column, int row);        
     };     
-    public void registerBoardUpdateListener( BoardUpdateListener l ) {
+    void registerBoardUpdateListener( BoardUpdateListener l ) {
         boardUpdateListener = l;
     }
-    protected void boardUpdate(Piece piece, boolean isNew, boolean marker, int col, int row) {
+    void boardUpdate(Piece piece, boolean isNew, boolean marker, int col, int row) {
         if (boardUpdateListener!=null) boardUpdateListener.Update(piece,isNew,marker,col,row); 
     }
 
     // Notify somebody (GUI) on status changes
     private StatusUpdateListener statusUpdateListener;
-    public interface StatusUpdateListener {
+    interface StatusUpdateListener {
         public void PrintStatus(String s);        
     };   
-    public void registerStatusUpdateListener( StatusUpdateListener l ) {
+    void registerStatusUpdateListener( StatusUpdateListener l ) {
         statusUpdateListener = l;
     }
-    protected void statusUpdate(String s) {
+    void statusUpdate(String s) {
         if (statusUpdateListener!=null) statusUpdateListener.PrintStatus(s);
     }
       

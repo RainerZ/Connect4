@@ -90,7 +90,7 @@ public class Connect4AiPlayer extends Connect4Player {
 
    // Get the current board score, -1000 ... +1000 given for a winning combination,
     // player1 = -player2 score
-    protected int getBoardScore(int p) {
+    int getBoardScore(int p) {
         int s = 0;
         for (Connect4Board.Line l : board.lines) {
             int s1 = l.value();
@@ -116,7 +116,7 @@ public class Connect4AiPlayer extends Connect4Player {
             maxDepth += 2; 
             break;
         default: 
-            maxDepth = 24; 
+            maxDepth = 18; 
         }
         if (maxDepth>Connect4Board.COLS*Connect4Board.ROWS-board.totPieces) maxDepth = Connect4Board.COLS*Connect4Board.ROWS-board.totPieces;
     }

@@ -3,9 +3,9 @@ package connect4;
 
 class Connect4Player {
 
-    protected final Connect4Board board;
-    protected final Connect4Board.Piece piece;
-    protected final String name;
+    final Connect4Board board;
+    final Connect4Board.Piece piece;
+    final String name;
     
     Connect4Player(Connect4Board board, Connect4Board.Piece piece, String name) {
         this.board = board;
@@ -13,23 +13,23 @@ class Connect4Player {
         this.name = name;
     }
 
-    public String getName() {
+    String getName() {
         return name;
     }
 
-    public boolean isComputer() {
+    boolean isComputer() {
         return false;
     }
 
-    public Connect4Board.Piece getPiece() {
+    Connect4Board.Piece getPiece() {
         return piece;
     }
 
-    public boolean doMove(int c) {
+    boolean doMove(int c) {
         return board.move(piece,c);
     }
 
-    public boolean calcMove() {
+    boolean calcMove() {
         return false;
     }
 

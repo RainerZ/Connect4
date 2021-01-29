@@ -1,6 +1,7 @@
 package connect4game;
 // A player with minmax ai algorithm
 
+
 public class Connect4AiPlayer extends Connect4Player {
 
     private final int[] colOrder = { 3, 4, 2, 1, 5, 0, 6 }; // Column priority (helps alpha/beta)
@@ -15,13 +16,12 @@ public class Connect4AiPlayer extends Connect4Player {
         pieceValue = piece.getFieldValue();
     }
 
-    @Override
     boolean isComputer() {
         return true;
     }
-
+    
     @Override
-    boolean calcMove() {
+    boolean doMove() {
         System.out.println(name+" is thinking (depth="+maxDepth+",lines="+board.getLines().size()+",pieces="+board.getTotPieces()+") ...");
         if (board.move(piece, minmax(pieceValue, 0, -1000000, +1000000))) {
             setOptimalMaxDepth();
@@ -60,11 +60,9 @@ public class Connect4AiPlayer extends Connect4Player {
 
         if (depth == 0) { // Return best move for actual board and player on level 0
             if (s_max == +Connect4Board.WIN_SCORE) {
-                board.statusUpdate("I will win!");
-                System.out.println(name + " is sure he will win");
+                board.statusUpdate(name+" will win!");
             } else if (s_max == -Connect4Board.WIN_SCORE) {
-                board.statusUpdate("Uups ...");
-                System.out.println(name + " is afraid to loose");
+                board.statusUpdate(name+" may loose");
                 // In this case create a move which will not loose immediately, human players
                 // might make faults
                 if (maxDepth != 2) {
@@ -72,6 +70,9 @@ public class Connect4AiPlayer extends Connect4Player {
                     return minmax(p, 0, -1000000, +1000000);
                 }
 
+            }
+            else {
+              board.statusUpdate(c_max+"/"+s_max);
             }
             return c_max;
         } else {

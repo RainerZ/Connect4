@@ -100,10 +100,9 @@ public class Connect4Frame extends Parent {
 
     private void newGame(boolean c1, boolean c2) {
         discRoot.getChildren().clear();
-        game = new Connect4Game(c1, c2);
-        game.registerBoardUpdateListener((Color color, boolean animated, boolean marker, int column,
-                int row) -> placeDisc(color, animated, marker, column, row));
-        game.registerStatusUpdateListener((String s) -> statusText2.setText(s));
+        game = new Connect4Game(c1, c2, 
+                (Color color,boolean animated,boolean marker,int column,int row) -> placeDisc(color, animated, marker, column, row),
+                (String s) -> statusText2.setText(s));
         if (c1 && c2) computerMove();
     }
 

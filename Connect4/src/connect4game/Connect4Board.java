@@ -138,8 +138,11 @@ class Connect4Board {
     }
 
     // Create a game
-    Connect4Board() {
+    Connect4Board(Connect4Game.BoardUpdateListener bl,Connect4Game.StatusUpdateListener sl) {
 
+        boardUpdateListener = bl;
+        statusUpdateListener = sl;
+        
         // Create board
         board = new int[Connect4Game.COLS][Connect4Game.ROWS];
         colPieces = new int[Connect4Game.COLS];
@@ -186,11 +189,9 @@ class Connect4Board {
 
     // Do a move, check and update game status, push to undo stack
     boolean move(Piece piece, int col) {
-
-        System.out.println("board.move("+piece.name()+"," + col + ")");
-
         int r = getColPieces(col);
         if (r < Connect4Game.ROWS && !gameOver) {
+            System.out.println(piece.name()+":"+col);
             putPiece(col, piece.getFieldValue());
             updateLines();
             boardUpdate(piece, true, false, col, r);
@@ -212,7 +213,7 @@ class Connect4Board {
         }
     }
 
-    // Undo the last moves of player 1
+    // Undo the last move
     void undo() {
 
         if (getTotPieces() > 0) {
@@ -224,7 +225,7 @@ class Connect4Board {
                 int r = f.row;
                 int c = f.col;
                 Piece p = Piece.ofFieldValue(board[c][r]);
-                System.out.println(p + " " + c);
+                System.out.println(p+":"+ c);
                 removePiece(c);
                 lines = buildLines(); // Rebuild the line list
                 updateLines();
@@ -256,20 +257,12 @@ class Connect4Board {
 
     // Notify somebody (GUI) on board changes
     private Connect4Game.BoardUpdateListener boardUpdateListener;
-        
-    void registerBoardUpdateListener( Connect4Game.BoardUpdateListener l ) {
-        boardUpdateListener = l;
-    }
     void boardUpdate(Piece piece, boolean isNew, boolean marker, int col, int row) {
         if (boardUpdateListener!=null) boardUpdateListener.Update(piece.color,isNew,marker,col,row); 
     }
 
     // Notify somebody (GUI) on status changes
     private Connect4Game.StatusUpdateListener statusUpdateListener;
-     
-    void registerStatusUpdateListener( Connect4Game.StatusUpdateListener l ) {
-        statusUpdateListener = l;
-    }
     void statusUpdate(String s) {
         if (statusUpdateListener!=null) statusUpdateListener.PrintStatus(s);
     }

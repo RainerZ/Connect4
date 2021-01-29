@@ -2,7 +2,7 @@ package connect4game;
 // The Connect4 player
 
 
-class Connect4Player {
+abstract class Connect4Player {
 
     final Connect4Board board;
     final Connect4Board.Piece piece;
@@ -18,20 +18,15 @@ class Connect4Player {
         return name;
     }
 
-    boolean isComputer() {
-        return false;
-    }
-
     Connect4Board.Piece getPiece() {
         return piece;
     }
 
-    boolean doMove(int c) {
-        return board.move(piece,c);
-    }
+    abstract boolean isComputer();
 
-    boolean calcMove() {
-        return false;
-    }
+    boolean doMove(int col) { return false; }
+    boolean doMove() { return false; }
+    
+    
 
 } // Connect4Player

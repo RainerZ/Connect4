@@ -18,26 +18,27 @@ final public class Connect4Game {
     private final Connect4Board board;
 
     // Create a game, a game has a board and two players
-    public Connect4Game(boolean computer1, boolean computer2) {
-
-        // Create board
-        board = new Connect4Board();
+    public Connect4Game(boolean computer1, boolean computer2, BoardUpdateListener bl, StatusUpdateListener sl ) {
         
+        // Create board
+        board = new Connect4Board(bl,sl);
+
         // Create players
         if (computer1) {
             player1 = new Connect4AiPlayer(board, Connect4Board.Piece.RED, "Computer (Red)",11);
         }
         else {
-            player1 = new Connect4Player(board, Connect4Board.Piece.RED, "Human (Red)");
+            player1 = new Connect4HumanPlayer(board, Connect4Board.Piece.RED, "Human (Red)");
         }
         if (computer2) {
             player2 = new Connect4AiPlayer(board, Connect4Board.Piece.YELLOW, "Computer (Yellow)",10);
         }
         else {
-            player2 = new Connect4Player(board, Connect4Board.Piece.YELLOW, "Human (Yellow)");
+            player2 = new Connect4HumanPlayer(board, Connect4Board.Piece.YELLOW, "Human (Yellow)");
         }
 
         nextPlayer = player1; // Player1 starts
+        board.statusUpdate(player1.getName()+" starts");
     }
 
    
@@ -50,19 +51,13 @@ final public class Connect4Game {
     public interface StatusUpdateListener {
         public void PrintStatus(String s);        
     };   
-    
-    // Register callbacks for board changes and status changes
-    public void registerBoardUpdateListener( BoardUpdateListener l ) {
-        board.registerBoardUpdateListener(l);
-    }
-    public void registerStatusUpdateListener( StatusUpdateListener l ) {
-        board.registerStatusUpdateListener(l);
-    }
-
-   
+       
     // Switch players
     private void nextPlayer() {
-        nextPlayer = (nextPlayer==player1) ? player2:player1;
+        if (!isOver()) {
+            nextPlayer = (nextPlayer==player1) ? player2:player1;
+            //board.statusUpdate(nextPlayer.getName());
+        }
     }
             
     // Check game is over
@@ -77,10 +72,9 @@ final public class Connect4Game {
     
     // Do a move for next human player
     public boolean humanMove(int col) {
-        if (!isOver() && !nextPlayer.isComputer()) {
+        if (!isOver()) {
             if (nextPlayer.doMove(col)) {
                 nextPlayer();
-                System.out.println("Next player is " + nextPlayer.getName());
                 return true;
             }
         }
@@ -89,27 +83,22 @@ final public class Connect4Game {
 
     // Do a move for next computer player
     public boolean computerMove() {
-        if (!isOver() && nextPlayer.isComputer()) {
-            if (nextPlayer.calcMove()) {
+        if (!isOver()) {
+            if (nextPlayer.doMove()) {
                 nextPlayer();
-                System.out.println("Next player is " + nextPlayer.getName());
                 return true;
             }
         }
         return false;
     }
     
-    // Undo one (human vs human) or two (human vs computer) moves 
+    // Undo two moves 
     public void undo() {
-        if (nextPlayer.isComputer()) return;
+        boolean wasOver = isOver();
         board.undo();
-        nextPlayer();
-        if (player1.isComputer()||player2.isComputer()) {
-          board.undo();
-          nextPlayer();
-        }
-    }
-    
+        board.undo();
+        if (wasOver) nextPlayer();
+    }    
 
 
 }

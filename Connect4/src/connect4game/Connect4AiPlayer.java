@@ -4,7 +4,9 @@ package connect4game;
 
 public class Connect4AiPlayer extends Connect4Player {
 
-    private final int[] colOrder = { 3, 4, 2, 1, 5, 0, 6 }; // Column priority (helps alpha/beta)
+    private final static int WIN_SCORE  = 1000;  // Score (Stellungsbewertung)
+
+    private final static int[] colOrder = { 3, 4, 2, 1, 5, 0, 6 }; // Column priority (helps alpha/beta)
 
     private int maxDepth; // max search depth
     private final int initialMaxDepth;
@@ -34,8 +36,8 @@ public class Connect4AiPlayer extends Connect4Player {
     private int minmax(int p, int depth, int alpha, int beta) {
 
         int s = getBoardScore(p);
-        if (depth >= maxDepth || board.getTotPieces() >= Connect4Game.ROWS * Connect4Game.COLS || s == +Connect4Board.WIN_SCORE
-                || s == -Connect4Board.WIN_SCORE)
+        if (depth >= maxDepth || board.getTotPieces() >= Connect4Game.ROWS * Connect4Game.COLS || s == +WIN_SCORE
+                || s == -WIN_SCORE)
             return s; // depth or game over
 
         int s_max = -1000000;
@@ -59,9 +61,9 @@ public class Connect4AiPlayer extends Connect4Player {
         }
 
         if (depth == 0) { // Return best move for actual board and player on level 0
-            if (s_max == +Connect4Board.WIN_SCORE) {
+            if (s_max == +WIN_SCORE) {
                 board.statusUpdate(name+" will win!");
-            } else if (s_max == -Connect4Board.WIN_SCORE) {
+            } else if (s_max == -WIN_SCORE) {
                 board.statusUpdate(name+" may loose");
                 // In this case create a move which will not loose immediately, human players
                 // might make faults
@@ -88,7 +90,7 @@ public class Connect4AiPlayer extends Connect4Player {
         for (Connect4Board.Line l : board.getLines()) {
             int s1 = l.value();
             if (s1 == -4 || s1 == +4) {
-                return p * s1 * Connect4Board.WIN_SCORE/4;
+                return p * s1 * WIN_SCORE/4;
             }
             s += s1;
         }

@@ -11,7 +11,27 @@ import javafx.scene.paint.Color;
 
 class Connect4Board {
 
-    final static int WIN_SCORE  = 1000;  // Score (Stellungsbewertung)
+    // Create a board
+    Connect4Board(Connect4Game.BoardUpdateListener bl,Connect4Game.StatusUpdateListener sl) {
+
+        boardUpdateListener = bl;
+        statusUpdateListener = sl;
+        
+        statusUpdate("");
+    }
+
+    // Notify somebody (GUI) on board changes
+    private Connect4Game.BoardUpdateListener boardUpdateListener;
+    void boardUpdate(Piece piece, boolean isNew, boolean marker, int col, int row) {
+        if (boardUpdateListener!=null) boardUpdateListener.Update(piece.color,isNew,marker,col,row); 
+    }
+
+    // Notify somebody (GUI) on status changes
+    private Connect4Game.StatusUpdateListener statusUpdateListener;
+    void statusUpdate(String s) {
+        if (statusUpdateListener!=null) statusUpdateListener.PrintStatus(s);
+    }
+      
 
     // The piece
     static enum Piece {
@@ -41,18 +61,30 @@ class Connect4Board {
         Color getColor() {
             return color;
           }
-    }
+    } // Piece
 
     
     // Board data
-    private int[][] board; // Piece field values -1,0,+1
-    private int[] colPieces; // Number of pieces in a column
-    private int totPieces; // Overall number pieces on the board
-    private List<Line> lines; // Array list of all still possible line combinations
+    private int[][] board = new int[Connect4Game.COLS][Connect4Game.ROWS]; // Piece field values -1,0,+1
+    private int[] colPieces = new int[Connect4Game.COLS]; // Number of pieces in a column
+    private int totPieces = 0; // Overall number pieces on the board
+
+    {
+        // Init board
+        for (int c = 0; c < Connect4Game.COLS; c++) {
+            colPieces[c] = 0;
+            for (int r = 0; r < Connect4Game.ROWS; r++) {
+                board[c][r] = Piece.EMPTY.fieldValue;
+            }
+        }
+    }
+
+    private List<Line> lines = buildLines(); // Array list of all still possible line combinations
 
     // Status
-    private boolean gameOver;
-    private Stack<Field> moveStack; // Move stack,for undo
+    private boolean gameOver = false;
+    private Stack<Field> moveStack = new Stack<Field>(); // Move stack,for undo
+
 
     // Field (field array element boxing class)
     private class Field {
@@ -71,15 +103,14 @@ class Connect4Board {
         Piece getPiece() { 
             return Piece.ofFieldValue(board[col][row]);
         }
-    }
+    } // Field
 
     // Line (a winning combination of 4 fields) 
     class Line {
 
-        private final List<Field> fields;
+        private final List<Field> fields = new ArrayList<Field>();
         
         private Line(int col, int row, int colo, int rowo) { // Create a winning line starting at (col,rol) in direction (colo,rowo)
-            fields = new ArrayList<Field>();
             for (int i = 0; i < 4; i++) {
                 fields.add(new Field(col + i * colo, row + i * rowo));
             }
@@ -102,7 +133,7 @@ class Connect4Board {
             }
             return n;
         }
-    }
+    } // Line
 
     // Create all winning line combinations of an empty field
     private List<Line> buildLines() {
@@ -127,7 +158,7 @@ class Connect4Board {
     }
 
     // Remove all lines which currently do not have any more impact on the game
-    void updateLines() {       
+    private void updateLines() {       
         Iterator<Line> i = getLines().iterator();
         while (i.hasNext()) {
             Line l = i.next();
@@ -137,28 +168,6 @@ class Connect4Board {
         }
     }
 
-    // Create a game
-    Connect4Board(Connect4Game.BoardUpdateListener bl,Connect4Game.StatusUpdateListener sl) {
-
-        boardUpdateListener = bl;
-        statusUpdateListener = sl;
-        
-        // Create board
-        board = new int[Connect4Game.COLS][Connect4Game.ROWS];
-        colPieces = new int[Connect4Game.COLS];
-        totPieces = 0;
-        for (int c = 0; c < Connect4Game.COLS; c++) {
-            colPieces[c] = 0;
-            for (int r = 0; r < Connect4Game.ROWS; r++) {
-                board[c][r] = Piece.EMPTY.fieldValue;
-            }
-        }
-        lines = buildLines();
-        gameOver = false;
-        moveStack = new Stack<Field>();
-
-        statusUpdate("");
-    }
          
     boolean isGameOver() {
         return gameOver;
@@ -255,17 +264,5 @@ class Connect4Board {
     }
 
 
-    // Notify somebody (GUI) on board changes
-    private Connect4Game.BoardUpdateListener boardUpdateListener;
-    void boardUpdate(Piece piece, boolean isNew, boolean marker, int col, int row) {
-        if (boardUpdateListener!=null) boardUpdateListener.Update(piece.color,isNew,marker,col,row); 
-    }
-
-    // Notify somebody (GUI) on status changes
-    private Connect4Game.StatusUpdateListener statusUpdateListener;
-    void statusUpdate(String s) {
-        if (statusUpdateListener!=null) statusUpdateListener.PrintStatus(s);
-    }
-      
 
 }

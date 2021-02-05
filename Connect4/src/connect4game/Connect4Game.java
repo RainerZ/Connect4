@@ -41,7 +41,8 @@ final public class Connect4Game {
         board.statusUpdate(player1.getName()+" starts");
     }
 
-   
+    { System.out.println("new Connect4Game()"); }
+
     // Notify somebody (GUI) on game board changes
     public interface BoardUpdateListener {
         public void Update(Color color, boolean isNew, boolean marker, int column, int row);        

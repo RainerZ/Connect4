@@ -14,6 +14,8 @@ abstract class Connect4Player {
         this.name = name;
     }
 
+    { System.out.println("new Connect4Player()"); }
+
     String getName() {
         return name;
     }

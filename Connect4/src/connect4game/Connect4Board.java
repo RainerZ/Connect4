@@ -4,6 +4,7 @@ package connect4game;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Stack;
 
 import javafx.scene.paint.Color;
@@ -11,25 +12,30 @@ import javafx.scene.paint.Color;
 
 class Connect4Board {
 
+    // Status
+    private boolean gameOver = false;
+
     // Create a board
     Connect4Board(Connect4Game.BoardUpdateListener bl,Connect4Game.StatusUpdateListener sl) {
 
-        boardUpdateListener = bl;
-        statusUpdateListener = sl;
-        
+        boardUpdateListener = Optional.of(bl);
+        statusUpdateListener = Optional.of(sl);
         statusUpdate("");
     }
+    
+    static { System.out.println("load Connect4Board() class"); }
+    { System.out.println("new Connect4Board()"); }
 
     // Notify somebody (GUI) on board changes
-    private Connect4Game.BoardUpdateListener boardUpdateListener;
+    private final Optional<Connect4Game.BoardUpdateListener> boardUpdateListener;
     void boardUpdate(Piece piece, boolean isNew, boolean marker, int col, int row) {
-        if (boardUpdateListener!=null) boardUpdateListener.Update(piece.color,isNew,marker,col,row); 
+        boardUpdateListener.ifPresent( l -> l.Update(piece.color,isNew,marker,col,row)); 
     }
 
     // Notify somebody (GUI) on status changes
-    private Connect4Game.StatusUpdateListener statusUpdateListener;
+    private final Optional<Connect4Game.StatusUpdateListener> statusUpdateListener;
     void statusUpdate(String s) {
-        if (statusUpdateListener!=null) statusUpdateListener.PrintStatus(s);
+        statusUpdateListener.ifPresent( l -> l.PrintStatus(s));
     }
       
 
@@ -69,8 +75,8 @@ class Connect4Board {
     private int[] colPieces = new int[Connect4Game.COLS]; // Number of pieces in a column
     private int totPieces = 0; // Overall number pieces on the board
 
+    // Init board
     {
-        // Init board
         for (int c = 0; c < Connect4Game.COLS; c++) {
             colPieces[c] = 0;
             for (int r = 0; r < Connect4Game.ROWS; r++) {
@@ -79,11 +85,25 @@ class Connect4Board {
         }
     }
 
-    private List<Line> lines = buildLines(); // Array list of all still possible line combinations
+    // Put a piece
+    void putPiece(int col, int p) {
+        board[col][colPieces[col]++] = p;
+        totPieces = getTotPieces() + 1;
+    }
+    
+    // Remove a piece
+    void removePiece(int col) {
+        board[col][--colPieces[col]] = 0;
+        totPieces = getTotPieces() - 1;
+    }
 
-    // Status
-    private boolean gameOver = false;
-    private Stack<Field> moveStack = new Stack<Field>(); // Move stack,for undo
+    int getColPieces(int col) {
+        return colPieces[col];
+    }
+
+    int getTotPieces() {
+        return totPieces;
+    }
 
 
     // Field (field array element boxing class)
@@ -105,10 +125,11 @@ class Connect4Board {
         }
     } // Field
 
+    
     // Line (a winning combination of 4 fields) 
     class Line {
 
-        private final List<Field> fields = new ArrayList<Field>();
+        private final List<Field> fields = new ArrayList<Field>(4);
         
         private Line(int col, int row, int colo, int rowo) { // Create a winning line starting at (col,rol) in direction (colo,rowo)
             for (int i = 0; i < 4; i++) {
@@ -134,6 +155,9 @@ class Connect4Board {
             return n;
         }
     } // Line
+
+    private List<Line> lines = buildLines(); // Array list of all still possible line combinations
+
 
     // Create all winning line combinations of an empty field
     private List<Line> buildLines() {
@@ -168,24 +192,23 @@ class Connect4Board {
         }
     }
 
-         
+    // Game is over
     boolean isGameOver() {
         return gameOver;
     }
     
-    // Find a line completed with 4 pieces
-    private Line getWinningLine() {
+    // Find any line completed with 4 pieces
+    private Optional<Line> getWinningLine() {
         for (Line l : getLines()) {
             int s = l.value();
-            if (s == -4 || s == +4) return l;
+            if (s == -4 || s == +4) return Optional.of(l);
         }
-        return null;
+        return Optional.empty();
     }
 
     // Nicely mark the winning combination on GUI
     private void markWinningLine(boolean mark) {
-        Line l = getWinningLine();
-        if (l != null) {
+        getWinningLine().ifPresent(l -> {
             for (Field f : l.fields) {
                 if (mark) {
                     boardUpdate(Piece.EMPTY, false, true, f.col, f.row);
@@ -193,8 +216,10 @@ class Connect4Board {
                     boardUpdate(Piece.ofFieldValue(board[f.col][f.row]), false, false, f.col, f.row);
                 }
             }
-        }
+        });
     }
+
+    private Stack<Field> moveStack = new Stack<Field>(); // Move stack,for move and undo
 
     // Do a move, check and update game status, push to undo stack
     boolean move(Piece piece, int col) {
@@ -205,16 +230,15 @@ class Connect4Board {
             updateLines();
             boardUpdate(piece, true, false, col, r);
             moveStack.push(new Field(col, r));
-            Line l = getWinningLine();
-            if (l!=null) {
+            getWinningLine().ifPresent( l -> {
                 statusUpdate(l.fields.get(0).getPiece() + " wins!");
                 markWinningLine(true);
                 gameOver = true;
-            } 
-            else if (getTotPieces() >= Connect4Game.ROWS * Connect4Game.COLS) {
+            });
+            if (!gameOver && getTotPieces() >= Connect4Game.ROWS * Connect4Game.COLS) {
                 statusUpdate("Game over!");
                 gameOver = true;
-            }
+            } 
             return true;
         } 
         else {
@@ -242,27 +266,5 @@ class Connect4Board {
                 statusUpdate("");
         }
     }
-
-    // Put a piece
-    void putPiece(int col, int p) {
-        board[col][colPieces[col]++] = p;
-        totPieces = getTotPieces() + 1;
-    }
-    
-    // Remove a piece
-    void removePiece(int col) {
-        board[col][--colPieces[col]] = 0;
-        totPieces = getTotPieces() - 1;
-    }
-
-    int getColPieces(int col) {
-        return colPieces[col];
-    }
-
-    int getTotPieces() {
-        return totPieces;
-    }
-
-
 
 }

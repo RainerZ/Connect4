@@ -18,6 +18,8 @@ public class Connect4AiPlayer extends Connect4Player {
         pieceValue = piece.getFieldValue();
     }
 
+    { System.out.println("new Connect4AiPlayer()"); }
+
     boolean isComputer() {
         return true;
     }

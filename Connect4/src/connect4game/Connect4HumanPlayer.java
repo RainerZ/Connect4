@@ -1,10 +1,8 @@
 package connect4game;
 
-import connect4game.Connect4Board.Piece;
-
 public class Connect4HumanPlayer extends Connect4Player {
 
-    public Connect4HumanPlayer(Connect4Board board, Piece piece, String name) {
+    public Connect4HumanPlayer(Connect4Board board, Connect4Board.Piece piece, String name) {
         super(board, piece, name);
     }
     

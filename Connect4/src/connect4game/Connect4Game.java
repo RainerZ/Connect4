@@ -57,7 +57,6 @@ final public class Connect4Game {
     private void nextPlayer() {
         if (!isOver()) {
             nextPlayer = (nextPlayer==player1) ? player2:player1;
-            //board.statusUpdate(nextPlayer.getName());
         }
     }
             

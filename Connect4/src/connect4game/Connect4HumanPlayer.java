@@ -12,7 +12,7 @@ public class Connect4HumanPlayer extends Connect4Player {
     }
     
     @Override
-    Optional<Integer> computeMove() {
+    Optional<Integer> computeMove(Connect4Board board) {
         return Optional.empty();
     }
 

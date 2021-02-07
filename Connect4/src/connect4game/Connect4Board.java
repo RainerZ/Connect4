@@ -120,18 +120,6 @@ class Connect4Board {
         }
         buildLines();
     }
-    
-    // Copy constructor
-    Connect4Board( Connect4Board board ) {
-        this.totPieces = board.totPieces;
-        for (int c = 0; c < Connect4Game.COLS; c++) {
-            this.colPieces[c] = board.colPieces[c];
-            for (int r = 0; r < Connect4Game.ROWS; r++) {
-                this.board[c][r] = board.board[c][r];
-            }
-        }
-        this.lines = board.lines;
-    }
 
     // Get a piece
     int get_(int col, int row) {

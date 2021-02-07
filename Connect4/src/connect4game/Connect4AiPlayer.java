@@ -14,12 +14,10 @@ public class Connect4AiPlayer extends Connect4Player {
     private final int initialMaxDepth;
     private final int pieceValue;
     private final Connect4Game game;
-    //private final Connect4Board board;
 
     Connect4AiPlayer(Connect4Game game, Connect4Board.Piece p, String name, int maxDepth) {
         super(p,name);
         this.game = game;
-        //this.board = board;
         this.initialMaxDepth = this.maxDepth = maxDepth;
         this.pieceValue = piece.getFieldValue();
     }

@@ -1,20 +1,19 @@
 package connect4game;
+
+import java.util.Optional;
+
 // The Connect4 player
-
-
 abstract class Connect4Player {
 
-    final Connect4Board board;
-    final Connect4Board.Piece piece;
+    { System.out.println("new Connect4Player()"); }
+
     final String name;
+    final Connect4Board.Piece piece;
     
-    public Connect4Player(Connect4Board board, Connect4Board.Piece piece, String name) {
-        this.board = board;
+    public Connect4Player(Connect4Board.Piece piece, String name) {
         this.piece = piece;
         this.name = name;
     }
-
-    { System.out.println("new Connect4Player()"); }
 
     String getName() {
         return name;
@@ -26,9 +25,6 @@ abstract class Connect4Player {
 
     abstract boolean isComputer();
 
-    boolean doMove(int col) { return false; }
-    boolean doMove() { return false; }
+    abstract Optional<Integer> computeMove();
     
-    
-
 } // Connect4Player

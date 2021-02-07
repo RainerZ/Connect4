@@ -1,55 +1,62 @@
 package connect4game;
+
+import java.util.Optional;
+
 // A player with minmax ai algorithm
-
-
 public class Connect4AiPlayer extends Connect4Player {
 
-    private final static int WIN_SCORE  = 1000;  // Score (Stellungsbewertung)
+    { System.out.println("new Connect4AiPlayer()"); }
 
+    private final static int WIN_SCORE  = 1000;  // Score (Stellungsbewertung)
     private final static int[] colOrder = { 3, 4, 2, 1, 5, 0, 6 }; // Column priority (helps alpha/beta)
 
     private int maxDepth; // max search depth
     private final int initialMaxDepth;
     private final int pieceValue;
+    private final Connect4Game game;
+    private final Connect4Board board;
 
-    Connect4AiPlayer(Connect4Board board, Connect4Board.Piece p, String name, int maxDepth) {
-        super(board,p,name);
+    Connect4AiPlayer(Connect4Game game, Connect4Board board, Connect4Board.Piece p, String name, int maxDepth) {
+        super(p,name);
+        this.game = game;
+        this.board = board;
         this.initialMaxDepth = this.maxDepth = maxDepth;
-        pieceValue = piece.getFieldValue();
+        this.pieceValue = piece.getFieldValue();
     }
 
-    { System.out.println("new Connect4AiPlayer()"); }
-
+    @Override
     boolean isComputer() {
         return true;
     }
     
     @Override
-    boolean doMove() {
-        System.out.println(name+" is thinking (depth="+maxDepth+",lines="+board.getLines().size()+",pieces="+board.getTotPieces()+") ...");
-        if (board.move(piece, minmax(pieceValue, 0, -1000000, +1000000))) {
-            setOptimalMaxDepth();
-            return true;   
-        }
-        return false;
+    Optional<Integer> computeMove() {
+        setOptimalMaxDepth();
+        System.out.println(name+" is thinking (depth="+maxDepth+",lines="+board.getLineCount()+",pieces="+board.getTotPieces()+") ...");
+        int col = minmax(pieceValue, 0, -1000000, +1000000);
+        if (col>=0) return Optional.of(col);
+        else return Optional.empty();
     }
 
     // Minmax algo with alpha/beta pruning (thanks c't)
     private int minmax(int p, int depth, int alpha, int beta) {
 
         int s = getBoardScore(p);
-        if (depth >= maxDepth || board.getTotPieces() >= Connect4Game.ROWS * Connect4Game.COLS || s == +WIN_SCORE
-                || s == -WIN_SCORE)
-            return s; // depth or game over
+        if (board.getTotPieces() >= Connect4Game.ROWS * Connect4Game.COLS) {
+            assert(depth!=0);
+            if (depth==0) throw new IllegalArgumentException();
+            return s;
+        }
+        if (depth >= maxDepth || s == +WIN_SCORE || s == -WIN_SCORE) return s; // max depth reached or won
 
         int s_max = -1000000;
         int c_max = -1;
         for (int i = 0; i < Connect4Game.COLS; i++) {
             int c = colOrder[i];
             if (board.getColPieces(c) < Connect4Game.ROWS) {
-                board.putPiece(c,p);
+                board.put_(c,p);
                 s = -minmax(-p, depth + 1, -beta, -alpha);
-                board.removePiece(c);
+                board.remove_(c);
                 if (s > s_max) {
                     s_max = s;
                     c_max = c;
@@ -64,9 +71,10 @@ public class Connect4AiPlayer extends Connect4Player {
 
         if (depth == 0) { // Return best move for actual board and player on level 0
             if (s_max == +WIN_SCORE) {
-                board.statusUpdate(name+" will win!");
-            } else if (s_max == -WIN_SCORE) {
-                board.statusUpdate(name+" may loose");
+                game.statusUpdate(name+" will win!");
+            } 
+            else if (s_max == -WIN_SCORE) {
+                game.statusUpdate(name+" may loose");
                 // In this case create a move which will not loose immediately, human players
                 // might make faults
                 if (maxDepth != 2) {
@@ -76,7 +84,7 @@ public class Connect4AiPlayer extends Connect4Player {
 
             }
             else {
-              board.statusUpdate(c_max+"/"+s_max);
+              game.statusUpdate(c_max+"/"+s_max);
             }
             return c_max;
         } else {
@@ -117,6 +125,5 @@ public class Connect4AiPlayer extends Connect4Player {
         }
         if (maxDepth>Connect4Game.COLS*Connect4Game.ROWS-board.getTotPieces()) maxDepth = Connect4Game.COLS*Connect4Game.ROWS-board.getTotPieces();
     }
-    
-   
+
 } // Connect4AiPlayer

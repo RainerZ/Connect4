@@ -1,19 +1,22 @@
 package connect4game;
 
+import java.util.Optional;
+
+// A human player
 public class Connect4HumanPlayer extends Connect4Player {
 
-    public Connect4HumanPlayer(Connect4Board board, Connect4Board.Piece piece, String name) {
-        super(board, piece, name);
-    }
-    
     { System.out.println("new Connect4HumanPlayer()"); }
 
-
+    public Connect4HumanPlayer(Connect4Board.Piece piece, String name) {
+        super(piece, name);
+    }
+    
     @Override
-    boolean doMove(int c) {
-        return board.move(piece,c);
+    Optional<Integer> computeMove() {
+        return Optional.empty();
     }
 
+    @Override
     boolean isComputer() {
         return false;
     }

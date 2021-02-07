@@ -26,34 +26,9 @@ public class Connect4 extends Application {
 
 
 /*
-YELLOW 2
-RED 0
-YELLOW 0
-RED 1
-YELLOW 1
-RED 6
-YELLOW 6
-RED 6
-YELLOW 2
-RED 0
-YELLOW 1
-RED 1
-YELLOW 4
-RED 6
-YELLOW 4
-RED 1
-YELLOW 0
-RED 1
-YELLOW 4
-RED 4
-YELLOW 3
-RED 4
-YELLOW 4
-RED 5
-YELLOW 3
-RED 6
-YELLOW 3
-RED 3
-YELLOW 3
-RED 3
+ Winning combinations:
+[3, 3, 4, 5, 3, 3, 3, 3, 1, 2, 2, 2, 2, 2, 4, 5, 4, 4, 4, 1, 0, 5, 5, 1, 5, 4, 5, 2, 0, 0, 1, 1, 1, 0, 0, 0, 6, 6, 6, 6, 6]
+[4, 3, 3, 3, 3, 3, 6, 3, 0, 4, 4, 4, 1, 4, 1, 0, 2, 4, 6, 1, 1, 6, 6, 1, 1, 0, 0, 0, 0, 6, 6, 2, 2]
+
+
 */

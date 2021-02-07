@@ -5,8 +5,6 @@ import java.util.Optional;
 // The Connect4 player
 abstract class Connect4Player {
 
-    { System.out.println("new Connect4Player()"); }
-
     final String name;
     final Connect4Board.Piece piece;
     

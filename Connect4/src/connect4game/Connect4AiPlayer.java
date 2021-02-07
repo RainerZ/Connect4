@@ -5,8 +5,6 @@ import java.util.Optional;
 // A player with minmax ai algorithm
 public class Connect4AiPlayer extends Connect4Player {
 
-    { System.out.println("new Connect4AiPlayer()"); }
-
     private final static int WIN_SCORE  = 1000;  // Score (Stellungsbewertung)
     private final static int[] colOrder = { 3, 4, 2, 1, 5, 0, 6 }; // Column priority (helps alpha/beta)
 
@@ -91,7 +89,7 @@ public class Connect4AiPlayer extends Connect4Player {
     }
 
 
-   // Get the current board score, -1000 ... +1000 given for a winning combination,
+    // Get the current board score, -1000 ... +1000 given for a winning combination,
     // player1 = -player2 score
     private int getBoardScore(Connect4Board board, int p) {
         int s = 0;

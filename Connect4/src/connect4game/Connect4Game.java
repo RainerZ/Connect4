@@ -9,11 +9,7 @@ import javafx.scene.paint.Color;
 
 final public class Connect4Game {
 
-    {
-        System.out.println("new Connect4Game()");
-    }
-
-    // Parameters and constants
+     // Parameters and constants
     public final static int COLS = 7; // Board
     public final static int ROWS = 6;
 
@@ -127,21 +123,20 @@ final public class Connect4Game {
     }
 
     
-    
     // Do a move, check and update game status, push to undo stack
     private boolean doMove(Connect4Board.Piece piece, int col) {
-        int r = board.getColPieces(col);
-        if (r < Connect4Game.ROWS && !gameOver) {
+        int row = board.getColPieces(col);
+        if (row < Connect4Game.ROWS && !gameOver) {
             System.out.println(piece.name() + ":" + col);
             board.putPiece(col, piece);
-            boardUpdate(piece, true, false, col, r);
+            boardUpdate(piece, true, false, col, row);
             moveStack.push(col);
-            board.getWinningLine().ifPresent(l -> {
-                statusUpdate(l.fields.get(0).getPiece() + " wins!");
-                markWinningLine(true);
+            if (board.gameWon()) {
+                statusUpdate(piece.name() + " wins!");
+                board.processWinningLine( (c,r) -> { boardUpdate(Connect4Board.Piece.EMPTY, false, true, c, r); } );
                 gameOver = true;
-            });
-            if (!gameOver && board.getTotPieces() >= Connect4Game.ROWS * Connect4Game.COLS) {
+            }
+            else if (board.gameOver()) {
                 statusUpdate("Game over!");
                 gameOver = true;
             }
@@ -156,7 +151,7 @@ final public class Connect4Game {
 
         if (board.getTotPieces() > 0) {
             if (gameOver) {
-                markWinningLine(false); // Remove winning line markers
+                board.processWinningLine( (col,row) -> { boardUpdate(board.getPiece(col, row), false, false, col, row); } ); // Remove winning line markers
                 gameOver = false;
             }
             System.out.println("History: " + moveStack.toString());
@@ -167,20 +162,6 @@ final public class Connect4Game {
             boardUpdate(Connect4Board.Piece.EMPTY, false, false, c, r);
             statusUpdate("");
         }
-    }
-
-        
-    // Nicely mark the winning combination on GUI
-    private void markWinningLine(boolean mark) {
-        board.getWinningLine().ifPresent(l -> {
-            for (Connect4Board.Line.Field f : l.fields) {
-                if (mark) {
-                    boardUpdate(Connect4Board.Piece.EMPTY, false, true, f.col, f.row);
-                } else {
-                    boardUpdate(board.getPiece(f.col, f.row), false, false, f.col, f.row);
-                }
-            }
-        });
     }
 
 }

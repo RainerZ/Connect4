@@ -5,19 +5,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 import javafx.scene.paint.Color;
 
 class Connect4Board {
 
-    static {
-        System.out.println("load Connect4Board() class");
-    }
-    {
-        System.out.println("new Connect4Board()");
-    }
-
-    // The piece
+     // The piece
     static enum Piece {
 
         RED(+1, Color.RED), YELLOW(-1, Color.YELLOW), EMPTY(0, Color.WHITE);
@@ -34,6 +28,10 @@ class Connect4Board {
             return fieldValue;
         }
 
+        Color getColor() {
+            return color;
+        }
+
         static Piece ofFieldValue(int f) {
             switch (f) {
             case -1:
@@ -45,9 +43,6 @@ class Connect4Board {
             }
         }
 
-        Color getColor() {
-            return color;
-        }
     } // Piece
 
     
@@ -57,7 +52,7 @@ class Connect4Board {
         // Field (field array element boxing class)
         class Field {
 
-            final int row, col;
+            private final int row, col;
 
             Field(int col, int row) {
                 this.row = row;
@@ -73,7 +68,7 @@ class Connect4Board {
             }
         } // Field
 
-        final List<Field> fields = new ArrayList<Field>(4);
+        final private List<Field> fields = new ArrayList<Field>(4);
 
         
         private Line(int col, int row, int colo, int rowo) { // Create a winning line starting at (col,rol) in direction
@@ -184,7 +179,7 @@ class Connect4Board {
     }
 
     // Remove all lines which currently do not have any more impact on the game
-    void updateLines() {
+    private void updateLines() {
         Iterator<Line> i = lines.iterator();
         while (i.hasNext()) {
             Line l = i.next();
@@ -195,7 +190,7 @@ class Connect4Board {
     }
 
     // Find any line completed with 4 pieces
-    Optional<Line> getWinningLine() {
+    private Optional<Line> getWinningLine() {
         for (Line l : lines) {
             int s = l.value();
             if (s == -4 || s == +4)
@@ -203,5 +198,21 @@ class Connect4Board {
         }
         return Optional.empty();
     }
-
+    
+    void processWinningLine( BiConsumer<Integer,Integer> consumer ) {   
+        getWinningLine().ifPresent(l -> {
+            for (Connect4Board.Line.Field f : l.fields) {
+                consumer.accept(f.col, f.row);
+            }
+        }); 
+    }
+    
+    boolean gameOver() {
+      return gameWon() || getTotPieces() >= Connect4Game.ROWS * Connect4Game.COLS;
+    }
+    
+    boolean gameWon() {
+        Optional<Line> l = getWinningLine();
+        return l.isPresent();
+    }
 }

@@ -5,8 +5,6 @@ import java.util.Optional;
 // A human player
 public class Connect4HumanPlayer extends Connect4Player {
 
-    { System.out.println("new Connect4HumanPlayer()"); }
-
     public Connect4HumanPlayer(Connect4Board.Piece piece, String name) {
         super(piece, name);
     }

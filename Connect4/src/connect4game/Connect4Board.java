@@ -137,7 +137,6 @@ class Connect4Board {
     int get_(int col, int row) {
         return board[col][row];
     }
-
     Piece getPiece(int col, int row) {
         return Piece.ofFieldValue(get_(col, row));
     }

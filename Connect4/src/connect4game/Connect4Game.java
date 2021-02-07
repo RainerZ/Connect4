@@ -43,12 +43,12 @@ final public class Connect4Game {
 
         // Create players
         if (computer1) {
-            player1 = new Connect4AiPlayer(this, board, Connect4Board.Piece.RED, "Computer (Red)", 11);
+            player1 = new Connect4AiPlayer(this, Connect4Board.Piece.RED, "Computer (Red)", 11);
         } else {
             player1 = new Connect4HumanPlayer(Connect4Board.Piece.RED, "Human (Red)");
         }
         if (computer2) {
-            player2 = new Connect4AiPlayer(this, board, Connect4Board.Piece.YELLOW, "Computer (Yellow)", 10);
+            player2 = new Connect4AiPlayer(this, Connect4Board.Piece.YELLOW, "Computer (Yellow)", 10);
         } else {
             player2 = new Connect4HumanPlayer(Connect4Board.Piece.YELLOW, "Human (Yellow)");
         }
@@ -106,7 +106,7 @@ final public class Connect4Game {
     // Do a move for next computer player
     public boolean computerMove() {
         if (!gameOver) {
-            Optional<Integer> col = nextPlayer.computeMove();
+            Optional<Integer> col = nextPlayer.computeMove(board);
             if (col.isPresent()) {
                 if (doMove(nextPlayer.getPiece(), col.get())) {
                     nextPlayer();

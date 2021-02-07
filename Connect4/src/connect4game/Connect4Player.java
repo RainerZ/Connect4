@@ -25,6 +25,6 @@ abstract class Connect4Player {
 
     abstract boolean isComputer();
 
-    abstract Optional<Integer> computeMove();
+    abstract Optional<Integer> computeMove( Connect4Board board);
     
 } // Connect4Player

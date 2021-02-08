@@ -82,20 +82,14 @@ class Connect4Board {
             int s = 0;
             for (Field f : fields) {
                 int sf = f.getFieldValue();
-                if (s * sf < 0)
-                    return 0;
+                if (s * sf < 0) return 0;
                 s += sf;
             }
             return s;
         }
 
         int count() { // Count number of pieces in this line
-            int n = 0;
-            for (Field f : fields) {
-                if (f.getFieldValue() != 0)
-                    n++;
-            }
-            return n;
+            return (int)fields.stream().filter(f->(f.getFieldValue()!=0)).count();
         }
 
     } // Line
@@ -178,7 +172,7 @@ class Connect4Board {
         }
     }
 
-    // Remove all lines which currently do not have any more impact on the game
+    // Remove all lines which currently do not have any more impact on the game (speed optimization)
     private void updateLines() {
         Iterator<Line> i = lines.iterator();
         while (i.hasNext()) {
@@ -188,23 +182,15 @@ class Connect4Board {
             }
         }
     }
-
-    // Find any line completed with 4 pieces
+    
+    // Find the first line completed with 4 pieces
     private Optional<Line> getWinningLine() {
-        for (Line l : lines) {
-            int s = l.value();
-            if (s == -4 || s == +4)
-                return Optional.of(l);
-        }
-        return Optional.empty();
+        return lines.stream().filter(l->(Math.abs(l.value())==4)).findFirst(); 
     }
     
-    void processWinningLine( BiConsumer<Integer,Integer> consumer ) {   
-        getWinningLine().ifPresent(l -> {
-            for (Connect4Board.Line.Field f : l.fields) {
-                consumer.accept(f.col, f.row);
-            }
-        }); 
+    // Call a BiConsumer on all fields of the winning line
+    void processWinningLine( BiConsumer<Integer,Integer> c ) {   
+        getWinningLine().ifPresent(l -> l.fields.forEach(f -> c.accept(f.col, f.row)));      
     }
     
     boolean gameOver() {
@@ -212,7 +198,6 @@ class Connect4Board {
     }
     
     boolean gameWon() {
-        Optional<Line> l = getWinningLine();
-        return l.isPresent();
+        return getWinningLine().isPresent();
     }
 }

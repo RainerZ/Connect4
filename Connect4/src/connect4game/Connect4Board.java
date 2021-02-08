@@ -11,6 +11,10 @@ import javafx.scene.paint.Color;
 
 class Connect4Board {
 
+    // Parameters and constants
+   public final static int COLS = 7; // Board dimensions
+   public final static int ROWS = 6;
+
      // The piece
     static enum Piece {
 
@@ -95,15 +99,15 @@ class Connect4Board {
     } // Line
 
     // Board data
-    private int[][] board = new int[Connect4Game.COLS][Connect4Game.ROWS]; // Piece field values -1,0,+1
-    private int[] colPieces = new int[Connect4Game.COLS]; // Number of pieces in a column
+    private int[][] board = new int[COLS][ROWS]; // Piece field values -1,0,+1
+    private int[] colPieces = new int[COLS]; // Number of pieces in a column
     private int totPieces = 0; // Overall number pieces on the board
     private List<Line> lines; // Array list of all still possible line combinations
 
     Connect4Board() {
-        for (int c = 0; c < Connect4Game.COLS; c++) {
+        for (int c = 0; c < COLS; c++) {
             colPieces[c] = 0;
-            for (int r = 0; r < Connect4Game.ROWS; r++) {
+            for (int r = 0; r < ROWS; r++) {
                 board[c][r] = Piece.EMPTY.fieldValue;
             }
         }
@@ -123,9 +127,11 @@ class Connect4Board {
         board[col][colPieces[col]++] = p;
         totPieces = getTotPieces() + 1;
     }
-    void putPiece(int col, Piece piece) {
+    boolean putPiece(int col, Piece piece) {
+        if (colPieces[col]>=ROWS) return false;
         put_(col,piece.getFieldValue());
         updateLines();
+        return true;
     }
     
     // Remove a piece
@@ -158,15 +164,15 @@ class Connect4Board {
     // Create all winning line combinations of an empty field
     private void buildLines() {
         lines = new ArrayList<Line>();
-        for (int r = 0; r < Connect4Game.ROWS; r++) {
-            for (int c = 0; c < Connect4Game.COLS; c++) {
-                if (r + 4 <= Connect4Game.ROWS)
+        for (int r = 0; r < ROWS; r++) {
+            for (int c = 0; c < COLS; c++) {
+                if (r + 4 <= ROWS)
                     lines.add(new Line(c, r, 0, 1)); // Vertical
-                if (c + 4 <= Connect4Game.COLS)
+                if (c + 4 <= COLS)
                     lines.add(new Line(c, r, 1, 0)); // Horizontal
-                if (r + 4 <= Connect4Game.ROWS && c + 4 <= Connect4Game.COLS)
+                if (r + 4 <= ROWS && c + 4 <= COLS)
                     lines.add(new Line(c, r, 1, 1)); // Diagonal
-                if (r + 4 <= Connect4Game.ROWS && c - 3 >= 0)
+                if (r + 4 <= ROWS && c - 3 >= 0)
                     lines.add(new Line(c, r, -1, 1));
             }
         }
@@ -194,7 +200,7 @@ class Connect4Board {
     }
     
     boolean gameOver() {
-      return gameWon() || getTotPieces() >= Connect4Game.ROWS * Connect4Game.COLS;
+      return gameWon() || getTotPieces() >= ROWS * COLS;
     }
     
     boolean gameWon() {

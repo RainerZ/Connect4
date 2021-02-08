@@ -68,9 +68,9 @@ public class Connect4Frame extends Parent {
     }
 
     private Shape makeGrid() {
-        Shape shape = new Rectangle((game.COLS + 1) * DISC_SIZE, (game.ROWS + 1) * DISC_SIZE);
-        for (int y = 0; y < game.ROWS; y++) {
-            for (int x = 0; x < game.COLS; x++) {
+        Shape shape = new Rectangle((game.getCols() + 1) * DISC_SIZE, (game.getRows() + 1) * DISC_SIZE);
+        for (int y = 0; y < game.getRows(); y++) {
+            for (int x = 0; x < game.getCols(); x++) {
                 Circle circle = new Circle(DISC_SIZE / 2);
                 circle.setCenterX(DISC_SIZE / 2);
                 circle.setCenterY(DISC_SIZE / 2);
@@ -85,8 +85,8 @@ public class Connect4Frame extends Parent {
 
     private List<Rectangle> makeColumns() {
         List<Rectangle> list = new ArrayList<>();
-        for (int x = 0; x < game.COLS; x++) {
-            Rectangle rect = new Rectangle(DISC_SIZE, (game.ROWS + 1) * DISC_SIZE);
+        for (int x = 0; x < game.getCols(); x++) {
+            Rectangle rect = new Rectangle(DISC_SIZE, (game.getRows() + 1) * DISC_SIZE);
             rect.setTranslateX(x * (DISC_SIZE + 5) + DISC_SIZE / 4);
             rect.setFill(Color.TRANSPARENT);
             rect.setOnMouseEntered(e -> rect.setFill(Color.rgb(200, 200, 200, 0.2)));
@@ -135,11 +135,11 @@ public class Connect4Frame extends Parent {
         discRoot.getChildren().add(disc);
         disc.setTranslateX(column * (DISC_SIZE + 5) + DISC_SIZE / 4);
         if (marked || !animated) {
-            disc.setTranslateY((Connect4Game.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);            
+            disc.setTranslateY((Connect4Game.getRows()-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);            
         }
         else { // Animate drop
             TranslateTransition animation = new TranslateTransition(Duration.seconds(0.6), disc);
-            animation.setToY((Connect4Game.ROWS-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);
+            animation.setToY((Connect4Game.getRows()-row-1) * (DISC_SIZE + 5) + DISC_SIZE / 4);
             animation.play();
         }
     }

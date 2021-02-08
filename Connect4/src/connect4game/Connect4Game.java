@@ -9,10 +9,6 @@ import javafx.scene.paint.Color;
 
 final public class Connect4Game {
 
-     // Parameters and constants
-    public final static int COLS = 7; // Board
-    public final static int ROWS = 6;
-
     // The players
     private final Connect4Player player1;
     private final Connect4Player player2;
@@ -27,6 +23,9 @@ final public class Connect4Game {
     // Undo stack
     private Stack<Integer> moveStack = new Stack<Integer>(); // Column stack,for move and undo
 
+    public static final int getRows() { return Connect4Board.ROWS; }
+    public static final int getCols() { return Connect4Board.COLS; }
+    
     // Create a game, a game has a board and two players
     public Connect4Game(boolean computer1, boolean computer2, BoardUpdateListener bl, StatusUpdateListener sl) {
 
@@ -122,28 +121,22 @@ final public class Connect4Game {
             nextPlayer();
     }
 
-    
     // Do a move, check and update game status, push to undo stack
     private boolean doMove(Connect4Board.Piece piece, int col) {
-        int row = board.getColPieces(col);
-        if (row < Connect4Game.ROWS && !gameOver) {
-            System.out.println(piece.name() + ":" + col);
-            board.putPiece(col, piece);
-            boardUpdate(piece, true, false, col, row);
-            moveStack.push(col);
-            if (board.gameWon()) {
-                statusUpdate(piece.name() + " wins!");
-                board.processWinningLine( (c,r) -> { boardUpdate(Connect4Board.Piece.EMPTY, false, true, c, r); } );
-                gameOver = true;
-            }
-            else if (board.gameOver()) {
-                statusUpdate("Game over!");
-                gameOver = true;
-            }
-            return true;
-        } else {
-            return false;
+        if (gameOver) return false;
+        if (!board.putPiece(col, piece)) return false;
+        System.out.println(piece.name() + ":" + col);
+        boardUpdate(piece, true, false, col, board.getColPieces(col) - 1);
+        moveStack.push(col);
+        if (board.gameWon()) {
+            statusUpdate(piece.name() + " wins!");
+            board.processWinningLine((c, r) -> { boardUpdate(Connect4Board.Piece.EMPTY, false, true, c, r); });
+            gameOver = true;
+        } else if (board.gameOver()) {
+            statusUpdate("Game over!");
+            gameOver = true;
         }
+        return true;
     }
 
     // Undo the last move
@@ -163,5 +156,4 @@ final public class Connect4Game {
             statusUpdate("");
         }
     }
-
 }

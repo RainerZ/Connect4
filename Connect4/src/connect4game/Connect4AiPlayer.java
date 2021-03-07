@@ -1,13 +1,13 @@
 package connect4game;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 // A player with minmax ai algorithm
 public class Connect4AiPlayer extends Connect4Player {
 
     private final static int WIN_SCORE  = 1000;  // Score (Stellungsbewertung)
-    private final static int[] colOrder = { 3, 4, 2, 1, 5, 0, 6 }; // Column priority (helps alpha/beta)
-
+    private final int[] colOrder = {3,4,2,1,0,5,6,7,8};
     private int maxDepth; // max search depth
     private final int initialMaxDepth;
     private final int pieceValue;

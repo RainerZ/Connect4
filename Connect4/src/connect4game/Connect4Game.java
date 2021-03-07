@@ -43,7 +43,7 @@ final public class Connect4Game {
             player1 = new Connect4HumanPlayer(Connect4Board.Piece.RED, "Human (Red)");
         }
         if (computer2) {
-            player2 = new Connect4AiPlayer(this, Connect4Board.Piece.YELLOW, "Computer (Yellow)", 10);
+            player2 = new Connect4AiPlayer(this, Connect4Board.Piece.YELLOW, "Computer (Yellow)", 11);
         } else {
             player2 = new Connect4HumanPlayer(Connect4Board.Piece.YELLOW, "Human (Yellow)");
         }

@@ -206,7 +206,7 @@ class Connect4Board {
         */
 
 
-        /* Ausführlichkeitsstufe 1: Predicate für filter als anonyme Klasse
+        /* Ausführlichkeitsstufe 1: Predicate für filter als Instanz einer anonymen Klasse
         return lines.stream().filter( 
            new Predicate<Line> () {
             @Override
@@ -221,7 +221,7 @@ class Connect4Board {
          */
         
         /* Ausführlichkeitsstufe 3: Predicate für filter als Lambda vereinfacht */
-         return lines.stream().filter(l->(Math.abs(l.value())==4)).findFirst();
+        return lines.stream().filter(l->(Math.abs(l.value())==4)).findFirst();
         
     }
     

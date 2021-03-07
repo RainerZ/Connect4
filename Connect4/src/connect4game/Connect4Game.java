@@ -3,8 +3,14 @@ package connect4game;
 
 import java.util.Optional;
 import java.util.Stack;
+import java.util.function.Consumer;
 
-import connect4game.Connect4Board.Piece;
+import connect4board.Connect4Board;
+import connect4board.Connect4Piece;
+import connect4player.Connect4AiPlayer;
+import connect4player.Connect4HumanPlayer;
+import connect4player.Connect4Player;
+
 import javafx.scene.paint.Color;
 
 final public class Connect4Game {
@@ -19,7 +25,11 @@ final public class Connect4Game {
 
     // Game status
     boolean gameOver;
-
+    
+    // Print status
+    private Consumer<String> sl;
+    private void printStatus( String s) { sl.accept(s); }
+    
     // Undo stack
     private Stack<Integer> moveStack = new Stack<Integer>(); // Column stack,for move and undo
 
@@ -27,10 +37,11 @@ final public class Connect4Game {
     public static final int getCols() { return Connect4Board.COLS; }
     
     // Create a game, a game has a board and two players
-    public Connect4Game(boolean computer1, boolean computer2, BoardUpdateListener bl, StatusUpdateListener sl) {
+    public Connect4Game(boolean computer1, boolean computer2, BoardUpdateListener bl, Consumer<String> sl) {
 
         boardUpdateListener = Optional.of(bl);
-        statusUpdateListener = Optional.of(sl);
+        if (sl==null) throw new IllegalArgumentException( "argument sl is null" );
+        this.sl = sl;
         gameOver = false;
 
         // Create a board
@@ -38,18 +49,18 @@ final public class Connect4Game {
 
         // Create players
         if (computer1) {
-            player1 = new Connect4AiPlayer(this, Connect4Board.Piece.RED, "Computer (Red)", 11);
+            player1 = new Connect4AiPlayer(sl, Connect4Piece.RED, "Computer (Red)", 10);
         } else {
-            player1 = new Connect4HumanPlayer(Connect4Board.Piece.RED, "Human (Red)");
+            player1 = new Connect4HumanPlayer(Connect4Piece.RED, "Human (Red)");
         }
         if (computer2) {
-            player2 = new Connect4AiPlayer(this, Connect4Board.Piece.YELLOW, "Computer (Yellow)", 11);
+            player2 = new Connect4AiPlayer(sl, Connect4Piece.YELLOW, "Computer (Yellow)", 10);
         } else {
-            player2 = new Connect4HumanPlayer(Connect4Board.Piece.YELLOW, "Human (Yellow)");
+            player2 = new Connect4HumanPlayer(Connect4Piece.YELLOW, "Human (Yellow)");
         }
 
         nextPlayer = player1; // Player1 starts
-        statusUpdate(player1.getName() + " starts");
+        printStatus(player1.getName() + " starts");
     }
 
     // Notify somebody (GUI) on game board changes
@@ -57,17 +68,8 @@ final public class Connect4Game {
         public void Update(Color color, boolean isNew, boolean marker, int column, int row);
     };
     private final Optional<Connect4Game.BoardUpdateListener> boardUpdateListener;
-    private void boardUpdate(Piece piece, boolean isNew, boolean marker, int col, int row) {
+    private void boardUpdate(Connect4Piece piece, boolean isNew, boolean marker, int col, int row) {
         boardUpdateListener.ifPresent(l -> l.Update(piece.getColor(), isNew, marker, col, row));
-    }
-
-    // Notify somebody (GUI) on game status changes
-    public interface StatusUpdateListener {
-        public void PrintStatus(String s);
-    };
-    private final Optional<Connect4Game.StatusUpdateListener> statusUpdateListener;
-    void statusUpdate(String s) {
-        statusUpdateListener.ifPresent(l -> l.PrintStatus(s));
     }
 
     // Switch players
@@ -122,18 +124,18 @@ final public class Connect4Game {
     }
 
     // Do a move, check and update game status, push to undo stack
-    private boolean doMove(Connect4Board.Piece piece, int col) {
+    private boolean doMove(Connect4Piece piece, int col) {
         if (gameOver) return false;
         if (!board.putPiece(col, piece)) return false;
         System.out.println(piece.name() + ":" + col);
         boardUpdate(piece, true, false, col, board.getColPieces(col) - 1);
         moveStack.push(col);
         if (board.gameWon()) {
-            statusUpdate(piece.name() + " wins!");
-            board.processWinningLine((c, r) -> { boardUpdate(Connect4Board.Piece.EMPTY, false, true, c, r); });
+            printStatus(piece.name() + " wins!");
+            board.processWinningLine((c, r) -> { boardUpdate(Connect4Piece.EMPTY, false, true, c, r); });
             gameOver = true;
         } else if (board.gameOver()) {
-            statusUpdate("Game over!");
+            printStatus("Game over!");
             gameOver = true;
         }
         return true;
@@ -152,8 +154,8 @@ final public class Connect4Game {
             int r = board.getColPieces(c) - 1;
             System.out.println("Undo: " + board.getPiece(c, r) + ":" + c);
             board.removePiece(c);
-            boardUpdate(Connect4Board.Piece.EMPTY, false, false, c, r);
-            statusUpdate("");
+            boardUpdate(Connect4Piece.EMPTY, false, false, c, r);
+            printStatus("");
         }
     }
 }

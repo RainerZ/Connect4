@@ -1,7 +1,10 @@
-package connect4game;
+package connect4player;
 
-import java.util.ArrayList;
 import java.util.Optional;
+import java.util.function.Consumer;
+
+import connect4board.Connect4Board;
+import connect4board.Connect4Piece;
 
 // A player with minmax ai algorithm
 public class Connect4AiPlayer extends Connect4Player {
@@ -11,22 +14,25 @@ public class Connect4AiPlayer extends Connect4Player {
     private int maxDepth; // max search depth
     private final int initialMaxDepth;
     private final int pieceValue;
-    private final Connect4Game game;
 
-    Connect4AiPlayer(Connect4Game game, Connect4Board.Piece p, String name, int maxDepth) {
+    // Print status
+    private Consumer<String> sl;
+    private void printStatus( String s) { sl.accept(s); }
+
+    public Connect4AiPlayer(Consumer<String> sl, Connect4Piece p, String name, int maxDepth) {
         super(p,name);
-        this.game = game;
+        this.sl = sl;
         this.initialMaxDepth = this.maxDepth = maxDepth;
         this.pieceValue = piece.getFieldValue();
     }
 
     @Override
-    boolean isComputer() {
+    public boolean isComputer() {
         return true;
     }
     
     @Override
-    Optional<Integer> computeMove(Connect4Board board) {
+    public Optional<Integer> computeMove(Connect4Board board) {
         setOptimalMaxDepth(board);
         System.out.println(name+" is thinking (depth="+maxDepth+",lines="+board.getLineCount()+",pieces="+board.getTotPieces()+") ...");
         int col = minmax(board, pieceValue, 0, -1000000, +1000000);
@@ -67,10 +73,10 @@ public class Connect4AiPlayer extends Connect4Player {
 
         if (depth == 0) { // Return best move for actual board and player on level 0
             if (s_max == +WIN_SCORE) {
-                game.statusUpdate(name+" will win!");
+                printStatus(name+" will win!");
             } 
             else if (s_max == -WIN_SCORE) {
-                game.statusUpdate(name+" may loose");
+                printStatus(name+" may loose");
                 // In this case create a move which will not loose immediately, human players
                 // might make faults
                 if (maxDepth != 2) {
@@ -80,7 +86,7 @@ public class Connect4AiPlayer extends Connect4Player {
 
             }
             else {
-              game.statusUpdate(c_max+"/"+s_max);
+              printStatus(c_max+"/"+s_max);
             }
             return c_max;
         } else {

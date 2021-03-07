@@ -1,4 +1,4 @@
-package connect4game;
+package connect4board;
 // The board
 
 import java.util.ArrayList;
@@ -13,49 +13,14 @@ import java.util.stream.IntStream;
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
 
-class Connect4Board {
+public class Connect4Board {
 
     // Parameters and constants
    public final static int COLS = 7; // Board dimensions
    public final static int ROWS = 6;
 
-     // The piece
-    static enum Piece {
-
-        RED(+1, Color.RED), YELLOW(-1, Color.YELLOW), EMPTY(0, Color.WHITE);
-
-        private final int fieldValue;
-        private final Color color;
-
-        private Piece(int fieldValue, Color color) {
-            this.fieldValue = fieldValue;
-            this.color = color;
-        }
-
-        int getFieldValue() {
-            return fieldValue;
-        }
-
-        Color getColor() {
-            return color;
-        }
-
-        static Piece ofFieldValue(int f) {
-            switch (f) {
-            case -1:
-                return YELLOW;
-            case +1:
-                return RED;
-            default:
-                return EMPTY;
-            }
-        }
-
-    } // Piece
-
-    
     // Line (a winning combination of 4 fields)
-    class Line {
+    public class Line {
 
         // Field (field array element boxing class)
         class Field {
@@ -71,8 +36,8 @@ class Connect4Board {
                 return board[col][row];
             }
 
-            Piece getPiece() {
-                return Piece.ofFieldValue(board[col][row]);
+            Connect4Piece getPiece() {
+                return Connect4Piece.ofFieldValue(board[col][row]);
             }
         } // Field
 
@@ -82,7 +47,7 @@ class Connect4Board {
             fields = IntStream.rangeClosed(0,3).mapToObj(i -> new Field(col + i * colo, row + i * rowo)).collect(Collectors.toList());
         }
 
-        int value() { // Count number of unique pieces in this line
+        public int value() { // Count number of unique pieces in this line
             int s = 0;
             for (Field f : fields) {
                 int sf = f.getFieldValue();
@@ -104,11 +69,11 @@ class Connect4Board {
     private int totPieces = 0; // Overall number pieces on the board
     private List<Line> lines; // Array list of all still possible line combinations
 
-    Connect4Board() {
+    public Connect4Board() {
         for (int c = 0; c < COLS; c++) {
             colPieces[c] = 0;
             for (int r = 0; r < ROWS; r++) {
-                board[c][r] = Piece.EMPTY.fieldValue;
+                board[c][r] = Connect4Piece.EMPTY.getFieldValue();
             }
         }
         buildLines();
@@ -118,16 +83,16 @@ class Connect4Board {
     int get_(int col, int row) {
         return board[col][row];
     }
-    Piece getPiece(int col, int row) {
-        return Piece.ofFieldValue(get_(col, row));
+    public Connect4Piece getPiece(int col, int row) {
+        return Connect4Piece.ofFieldValue(get_(col, row));
     }
 
     // Put a piece
-    void put_(int col, int p) {
+    public void put_(int col, int p) {
         board[col][colPieces[col]++] = p;
         totPieces = getTotPieces() + 1;
     }
-    boolean putPiece(int col, Piece piece) {
+    public boolean putPiece(int col, Connect4Piece piece) {
         if (colPieces[col]>=ROWS) return false;
         put_(col,piece.getFieldValue());
         updateLines();
@@ -135,29 +100,29 @@ class Connect4Board {
     }
     
     // Remove a piece
-    void remove_(int col) {
+    public void remove_(int col) {
         board[col][--colPieces[col]] = 0;
         totPieces = getTotPieces() - 1;
     }
-    void removePiece(int col) {
+    public void removePiece(int col) {
         remove_(col);
         buildLines(); // Rebuild the line list
         updateLines();
     }
     
-    int getColPieces(int col) {
+    public int getColPieces(int col) {
         return colPieces[col];
     }
 
-    int getTotPieces() {
+    public int getTotPieces() {
         return totPieces;
     }
 
-    List<Line> getLines() {
+    public List<Line> getLines() {
         return lines;
     }
 
-    int getLineCount() {
+    public int getLineCount() {
         return lines.size();
     }
 
@@ -189,52 +154,21 @@ class Connect4Board {
         }
     }
     
-    
-     
     // Find the first line completed with 4 pieces
     private Optional<Line> getWinningLine() {
-
-        /* Ausführlichkeitsstufe 0: Implementierung des Predicate Interface für filter als Klasseninstanz
-        class LinePredicate implements Predicate<Line> {
-
-            @Override
-            public boolean test(Line l) {
-                return (Math.abs(l.value())==4);
-            }
-        }
-        return lines.stream().filter( new LinePredicate() ).findFirst(); 
-        */
-
-
-        /* Ausführlichkeitsstufe 1: Predicate für filter als Instanz einer anonymen Klasse
-        return lines.stream().filter( 
-           new Predicate<Line> () {
-            @Override
-            public boolean test(Line l) {
-                return (Math.abs(l.value())==4);
-            }   
-         } ).findFirst(); 
-        */
-
-        /* Ausführlichkeitsstufe 2: Predicate für filter als Lambda
-         return lines.stream().filter((Line l) -> { return (Math.abs(l.value())==4); }  ).findFirst(); 
-         */
-        
-        /* Ausführlichkeitsstufe 3: Predicate für filter als Lambda vereinfacht */
         return lines.stream().filter(l->(Math.abs(l.value())==4)).findFirst();
-        
     }
     
     // Call a BiConsumer on all fields of the winning line
-    void processWinningLine( BiConsumer<Integer,Integer> c ) {   
+    public void processWinningLine( BiConsumer<Integer,Integer> c ) {   
         getWinningLine().ifPresent(l -> l.fields.forEach(f -> c.accept(f.col, f.row)));      
     }
     
-    boolean gameOver() {
+    public boolean gameOver() {
       return gameWon() || getTotPieces() >= ROWS * COLS;
     }
     
-    boolean gameWon() {
+    public boolean gameWon() {
         return getWinningLine().isPresent();
     }
 }

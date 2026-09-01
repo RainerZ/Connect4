@@ -1,8 +1,9 @@
 # Connect4
 
+This repo is kept for historical reasons. Check out the new Rust version with support for LLM players on https://github.com/RainerZ/Connect4-rs.
+
 Connect4 (ScoreFour, Vier gewinnt) game implementation in 600 lines of code in Java with JavaFX gui.
 Beat it !
-
 
 GUI inspired by AlmasB JavaFX tutorials.
 AI algorithm (minmax with alpha-beta pruning) inspired by C'T 10/2014 Denkmaschine by Hajo Schulz.
